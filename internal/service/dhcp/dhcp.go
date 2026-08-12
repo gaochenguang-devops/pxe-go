@@ -412,31 +412,42 @@ func networkOf(ipStr, maskStr string) (net.IP, int) {
 }
 
 // matchSubnet 根据报文 giaddr 或来源 IP 匹配对应的子网池。
-// 优先 giaddr（中继），其次来源 IP；均未命中返回 nil（无法分配）。
+// 1) 来源 IP 明确存在（giaddr 中继 / peer 已持有 IP）时，是客户端所在网段最可靠的依据：
+//    命中即返回，未命中直接返回 nil，避免用本机 IP 兜底造成误配。
+// 2) 来源全零（同网段直连广播、无 GIADDR）时，用服务器监听 IP 与本机网卡 IP 匹配网段。
 func (s *Server) matchSubnet(m *dhcpv4.DHCPv4, peer net.Addr, dc model.DHCPConfig) *IPPool {
-	// 候选 IP 列表：用于与子网网络号匹配
-	var candidates []net.IP
-
-	// 1) GIADDR：跨网段（DHCP 中继）时一定是客户端所在子网的网关地址，优先级最高
-	if !m.GatewayIPAddr.IsUnspecified() {
-		candidates = append(candidates, m.GatewayIPAddr.To4())
-	}
-	// 2) peer 来源 IP：客户端已持有 IP 的情况（如 DHCPREQUEST 续约）
-	if addr, ok := peer.(*net.UDPAddr); ok && !addr.IP.IsUnspecified() {
-		candidates = append(candidates, addr.IP.To4())
-	}
-	// 3) 服务器监听 IP：同网段直连（广播、源 0.0.0.0、无 GIADDR）时，
-	//    客户端与服务器在同一子网，用服务器接收接口 IP 匹配网段
-	if dc.ListenIP != "" && !net.ParseIP(dc.ListenIP).IsUnspecified() {
-		candidates = append(candidates, net.ParseIP(dc.ListenIP).To4())
-	}
-	// 4) 兜底：枚举本机所有网卡 IP 匹配（监听 0.0.0.0 或多接口场景）
-	candidates = append(candidates, localIPv4s()...)
-
 	if len(s.subnets) == 0 {
 		return nil
 	}
-	for _, src := range candidates {
+
+	// 1) 来源 IP：GIADDR（跨网段中继，优先级最高）+ peer 来源 IP（客户端已有 IP，如续约）
+	var srcs []net.IP
+	if !m.GatewayIPAddr.IsUnspecified() {
+		srcs = append(srcs, m.GatewayIPAddr.To4())
+	}
+	if addr, ok := peer.(*net.UDPAddr); ok && !addr.IP.IsUnspecified() {
+		srcs = append(srcs, addr.IP.To4())
+	}
+	if len(srcs) > 0 {
+		// 来源 IP 明确存在但不匹配任何启用子网 → 拒绝分配
+		return s.matchByIPs(srcs)
+	}
+
+	// 2) 同网段直连（广播、源 0.0.0.0）：服务器监听 IP 优先，其次本机所有网卡 IP
+	//    （监听 0.0.0.0 或多接口场景）
+	srcs = srcs[:0]
+	if dc.ListenIP != "" {
+		if lip := net.ParseIP(dc.ListenIP).To4(); lip != nil && !lip.IsUnspecified() {
+			srcs = append(srcs, lip)
+		}
+	}
+	srcs = append(srcs, localIPv4s()...)
+	return s.matchByIPs(srcs)
+}
+
+// matchByIPs 依次用候选 IP 匹配已启用的子网池，命中即返回，否则返回 nil。
+func (s *Server) matchByIPs(srcs []net.IP) *IPPool {
+	for _, src := range srcs {
 		if src == nil {
 			continue
 		}
