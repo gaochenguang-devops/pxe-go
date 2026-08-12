@@ -35,3 +35,6 @@ Thumbs.db
 
 # ============ 日志与调试 ============
 *.log
+
+verify_iso_tmp
+coverage

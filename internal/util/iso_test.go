@@ -72,10 +72,18 @@ func TestExtractISO(t *testing.T) {
 		t.Fatalf("ExtractISO err: %v", err)
 	}
 
-	// 验证解压出了 hello.txt 且内容一致
-	data, err := os.ReadFile(filepath.Join(dest, "hello.txt"))
+	// ISO9660 规范会把文件名存为大写（HELLO.TXT），且大小写敏感平台上（Linux）
+	// 与写入时的 hello.txt 不同。故不硬编码文件名，改为遍历解压目录校验确有文件且内容一致。
+	entries, err := os.ReadDir(dest)
 	if err != nil {
-		t.Fatalf("read extracted hello.txt: %v", err)
+		t.Fatalf("read dir: %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 extracted file, got %d", len(entries))
+	}
+	data, err := os.ReadFile(filepath.Join(dest, entries[0].Name()))
+	if err != nil {
+		t.Fatalf("read extracted file: %v", err)
 	}
 	if string(data) != "hello world!" {
 		t.Errorf("extracted content = %q, want %q", data, "hello world!")
