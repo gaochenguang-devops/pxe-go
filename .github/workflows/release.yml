@@ -1,0 +1,78 @@
+name: Release
+
+# 推送 v* 标签（如 v1.2.0）时触发：构建多架构产物并发布 GitHub Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & Publish Release ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # 完整历史，用于生成 changelog
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install arm64 cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Build linux/amd64
+        env:
+          GOOS: linux
+          GOARCH: amd64
+          CGO_ENABLED: "1"
+          CC: gcc
+        run: go build -trimpath -ldflags "-s -w" -o dist/pxe-server-linux-amd64 ./cmd/server
+
+      - name: Build linux/arm64
+        env:
+          GOOS: linux
+          GOARCH: arm64
+          CGO_ENABLED: "1"
+          CC: aarch64-linux-gnu-gcc
+        run: go build -trimpath -ldflags "-s -w" -o dist/pxe-server-linux-arm64 ./cmd/server
+
+      - name: Package artifacts
+        run: |
+          cd dist
+          tar czf pxe-server-linux-amd64.tar.gz pxe-server-linux-amd64
+          tar czf pxe-server-linux-arm64.tar.gz pxe-server-linux-arm64
+          sha256sum pxe-server-*.tar.gz > SHA256SUMS
+          ls -lh
+
+      - name: Generate changelog
+        run: |
+          PREV=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$PREV" ]; then
+            git log --oneline --no-merges "${PREV}..HEAD" > CHANGELOG.txt
+          else
+            git log --oneline --no-merges -20 > CHANGELOG.txt
+          fi
+          cat CHANGELOG.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/pxe-server-linux-amd64.tar.gz
+            dist/pxe-server-linux-arm64.tar.gz
+            dist/SHA256SUMS
+          body_path: CHANGELOG.txt
+          generate_release_notes: true
+          draft: false
+          fail_on_unmatched_files: true

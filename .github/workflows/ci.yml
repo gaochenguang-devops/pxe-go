@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ==================== 静态检查 + 单元测试 ====================
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          # 从 go.mod 读取版本（go 1.25.0），自动缓存依赖与构建缓存
+          go-version-file: go.mod
+          cache: true
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Build all packages
+        run: go build ./...
+
+      - name: Unit tests (with race detector)
+        run: go test ./... -count=1 -race -coverprofile=coverage.out
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+          if-no-files-found: error
+
+  # ==================== 跨平台构建验证 ====================
+  # 由于 SQLite 依赖需要 CGO，交叉编译必须指定对应平台的 C 编译器。
+  # PXE 服务器目标平台为 Linux amd64 / arm64；Windows 产物供本地开发使用。
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-amd64
+            goos: linux
+            goarch: amd64
+            cc: gcc
+          - name: linux-arm64
+            goos: linux
+            goarch: arm64
+            cc: aarch64-linux-gnu-gcc
+          - name: windows-amd64
+            goos: windows
+            goarch: amd64
+            cc: x86_64-w64-mingw32-gcc
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install cross compilers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64
+
+      - name: Cross build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "1"
+          CC: ${{ matrix.cc }}
+        run: go build -trimpath -ldflags "-s -w" -o pxe-server-${{ matrix.name }} ./cmd/server
+
+      - name: Smoke test (run -h for linux targets)
+        if: matrix.goos == 'linux'
+        run: ./pxe-server-${{ matrix.name }} -h 2>&1 | head -20 || true
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: pxe-server-${{ matrix.name }}
+          path: pxe-server-${{ matrix.name }}
+          if-no-files-found: error
