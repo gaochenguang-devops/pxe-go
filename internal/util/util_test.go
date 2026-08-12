@@ -53,7 +53,8 @@ func TestNormalizeMAC(t *testing.T) {
 }
 
 func TestSafeJoinTraversal(t *testing.T) {
-	base := "C:\\tftp"
+	// 使用真实临时目录作为 base，保证跨平台行为一致（避免 Windows 风格硬编码路径）
+	base := t.TempDir()
 	// 目录穿越应被拒绝
 	if _, err := SafeJoin(base, "../../etc/passwd"); err == nil {
 		t.Error("expected traversal error, got nil")
@@ -63,7 +64,7 @@ func TestSafeJoinTraversal(t *testing.T) {
 	if err != nil {
 		t.Fatalf("SafeJoin err: %v", err)
 	}
-	if !strings.HasSuffix(filepath.ToSlash(p), "tftp/autoexec.ipxe") {
+	if !strings.HasSuffix(filepath.ToSlash(p), "autoexec.ipxe") {
 		t.Errorf("unexpected path: %s", p)
 	}
 }

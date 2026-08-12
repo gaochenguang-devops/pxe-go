@@ -94,8 +94,8 @@ cpuid --ext 29 && set arch_override aarch64 || set arch_override x86_64
 iseq ${buildarch} arm64 && set arch_override aarch64 ||
 set arch_override ${arch_override}
 set image_name bclinux-euler2110
-kernel ${boot_root}/${image_name}/${arch_override}/images/pxeboot/vmlinuz initrd=initrd.img inst.ks=${ks_root}/ks.cfg inst.stage2=${boot_root}/${image_name}/${arch_override} net.ifnames=0 biosdevname=0
-initrd ${boot_root}/${image_name}/${arch_override}/images/pxeboot/initrd.img
+kernel ${boot_root}/repo/${image_name}/${arch_override}/images/pxeboot/vmlinuz initrd=initrd.img inst.ks=${ks_root}/ks.cfg inst.stage2=${boot_root}/repo/${image_name}/${arch_override} net.ifnames=0 biosdevname=0
+initrd ${boot_root}/repo/${image_name}/${arch_override}/images/pxeboot/initrd.img
 boot
 
 :shell

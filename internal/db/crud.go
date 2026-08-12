@@ -62,19 +62,6 @@ func GetHostByID(id int64) (*model.HostInfo, error) {
 	return scanHost(DB.QueryRow(`SELECT `+hostCols+` FROM host_info WHERE id=?`, id))
 }
 
-func GetHostByMAC(mac string) (*model.HostInfo, error) {
-	var id int64
-	var macAddr string
-	row := DB.QueryRow(`SELECT id, mac_addr, hostname, ipmi_addr, ipmi_user, ipmi_pass, install_status, create_time FROM host_info WHERE mac_addr=?`, mac)
-	h := &model.HostInfo{}
-	if err := row.Scan(&id, &macAddr, &h.Hostname, &h.IPMIAddr, &h.IPMIUser, &h.IPMIPass, &h.InstallStatus, &h.CreateTime); err != nil {
-		return nil, err
-	}
-	h.ID = id
-	_ = macAddr
-	return h, nil
-}
-
 func ListHosts() ([]*model.HostInfo, error) {
 	rows, err := DB.Query(`SELECT ` + hostCols + ` FROM host_info ORDER BY id ASC`)
 	if err != nil {
@@ -252,17 +239,6 @@ func DeleteHostResourceBatch(ids []int64) error {
 
 // ============ PXE Resource 资源 ============
 
-// CreateResource 新增资源记录。
-func CreateResource(r *model.PXEResource) (int64, error) {
-	r.UploadTime = time.Now()
-	res, err := DB.Exec(`INSERT INTO pxe_resource(name, res_type, arch_type, local_path, size, upload_time) VALUES(?,?,?,?,?,?)`,
-		r.Name, r.ResType, r.ArchType, r.LocalPath, r.Size, r.UploadTime)
-	if err != nil {
-		return 0, err
-	}
-	return res.LastInsertId()
-}
-
 // ListResources 查询资源列表。
 func ListResources() ([]*model.PXEResource, error) {
 	rows, err := DB.Query(`SELECT id, name, res_type, arch_type, local_path, size, upload_time FROM pxe_resource ORDER BY id DESC`)
@@ -279,12 +255,6 @@ func ListResources() ([]*model.PXEResource, error) {
 		out = append(out, r)
 	}
 	return out, nil
-}
-
-// DeleteResource 删除资源记录。
-func DeleteResource(id int64) error {
-	_, err := DB.Exec(`DELETE FROM pxe_resource WHERE id=?`, id)
-	return err
 }
 
 // ============ KS Template ============
@@ -593,7 +563,7 @@ func ListOperLogsFiltered(module, opType, search string, limit, offset int) ([]*
 		limit = 100
 	}
 	where := "1=1"
-	args := make([]interface{}, 0)
+	args := make([]any, 0)
 
 	if module != "" {
 		where += " AND op_type LIKE ?"

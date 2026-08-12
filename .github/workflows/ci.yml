@@ -32,12 +32,18 @@ jobs:
           cache: true
 
       - name: Go vet
+        env:
+          CGO_ENABLED: "0"
         run: go vet ./...
 
       - name: Build all packages
+        env:
+          CGO_ENABLED: "0"
         run: go build ./...
 
       - name: Unit tests (with race detector)
+        env:
+          CGO_ENABLED: "0"
         run: go test ./... -count=1 -race -coverprofile=coverage.out
 
       - name: Upload coverage report
@@ -49,7 +55,7 @@ jobs:
           if-no-files-found: error
 
   # ==================== 跨平台构建验证 ====================
-  # 由于 SQLite 依赖需要 CGO，交叉编译必须指定对应平台的 C 编译器。
+  # 纯 Go SQLite（modernc），CGO_ENABLED=0 静态编译，无 glibc/交叉编译器依赖。
   # PXE 服务器目标平台为 Linux amd64 / arm64；Windows 产物供本地开发使用。
   build:
     name: Build ${{ matrix.name }}
@@ -61,15 +67,12 @@ jobs:
           - name: linux-amd64
             goos: linux
             goarch: amd64
-            cc: gcc
           - name: linux-arm64
             goos: linux
             goarch: arm64
-            cc: aarch64-linux-gnu-gcc
           - name: windows-amd64
             goos: windows
             goarch: amd64
-            cc: x86_64-w64-mingw32-gcc
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,17 +85,11 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install cross compilers
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-mingw-w64-x86-64
-
-      - name: Cross build
+      - name: Cross build (pure Go, no CGO)
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: "1"
-          CC: ${{ matrix.cc }}
+          CGO_ENABLED: "0"
         run: go build -trimpath -ldflags "-s -w" -o pxe-server-${{ matrix.name }} ./cmd/server
 
       - name: Smoke test (run -h for linux targets)

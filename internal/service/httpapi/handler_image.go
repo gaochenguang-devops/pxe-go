@@ -19,7 +19,7 @@ import (
 
 // handleUploadImage 上传系统镜像 ISO（支持一次上传两个架构：x86_64 + aarch64）。
 // 表单字段：name（镜像名，如 euler1）、x86_iso（x86_64 ISO，可选）、arm_iso（aarch64 ISO，可选）。
-// 可一次上传两个 ISO，也可只传一个（后补第二个）。分别解压到 web_root/{name}/{arch} 并落库。
+// 可一次上传两个 ISO，也可只传一个（后补第二个）。分别解压到 web_root/repo/{name}/{arch} 并落库。
 func (s *Server) handleUploadImage(c *gin.Context) {
 	mr, err := c.Request.MultipartReader()
 	if err != nil {
@@ -31,7 +31,9 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 	if webRoot == "" {
 		webRoot = "assets/web_root"
 	}
-	isoDir := filepath.Join(webRoot, "isos")
+	// 安装源统一放在 web_root/repo 下，与 uploads、deploy.sh 等运行时文件隔离
+	repoRoot := filepath.Join(webRoot, "repo")
+	isoDir := filepath.Join(repoRoot, "isos")
 	if err := os.MkdirAll(isoDir, 0o755); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "创建目录失败: " + err.Error()})
 		return
@@ -115,7 +117,7 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "保存 ISO 失败: " + err.Error()})
 			return
 		}
-		destDir := filepath.Join(webRoot, name, arch)
+		destDir := filepath.Join(repoRoot, name, arch)
 		if err := os.RemoveAll(destDir); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "清理旧目录失败: " + err.Error()})
 			return
@@ -128,7 +130,7 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 		// 解压完成后删除 ISO 文件，不保留
 		os.Remove(isoPath)
 		// 更新对应架构字段
-		repoPath := fmt.Sprintf("/%s/%s", name, arch)
+		repoPath := fmt.Sprintf("/repo/%s/%s", name, arch)
 		if arch == "aarch64" {
 			img.ArmRepoPath = repoPath
 			img.ArmIsoPath = "" // ISO 已删除，不再记录路径
@@ -238,8 +240,8 @@ func (s *Server) handleUploadBootFile(c *gin.Context) {
 		webRoot = "assets/web_root"
 	}
 
-	// 目标路径: {webRoot}/{name}/{arch}/images/pxeboot/{initrd.img|vmlinuz}
-	targetDir := filepath.Join(webRoot, img.Name, arch, "images", "pxeboot")
+	// 目标路径: {webRoot}/repo/{name}/{arch}/images/pxeboot/{initrd.img|vmlinuz}
+	targetDir := filepath.Join(webRoot, "repo", img.Name, arch, "images", "pxeboot")
 	targetFile := filepath.Join(targetDir, fileType+".img")
 	if fileType == "vmlinuz" {
 		targetFile = filepath.Join(targetDir, "vmlinuz")
@@ -290,4 +292,29 @@ func safeImageName(s string) bool {
 		}
 	}
 	return true
+}
+
+// handleListImages 镜像列表。
+func (s *Server) handleListImages(c *gin.Context) {
+	list, err := db.ListOSImages()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"code": 0, "data": list})
+}
+
+// handleDeleteImage 删除镜像。
+func (s *Server) handleDeleteImage(c *gin.Context) {
+	id := parseInt64(c.Param("id"))
+	if id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效ID"})
+		return
+	}
+	if err := db.DeleteOSImage(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
+	s.writeLog(c, "image_delete", "删除镜像 ID="+int64Str(id))
+	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "已删除"})
 }

@@ -11,25 +11,15 @@ import (
 	"pxe-server/internal/model"
 )
 
-// RenderKSFromDB 从数据库模板渲染 ks.cfg（不使用磁盘缓存，用于 /ks.cfg 通用访问）。
-func RenderKSFromDB(cfg *config.Manager, mac string, tplID int64, imageName string) (string, error) {
-	return renderKS(cfg, mac, tplID, imageName, false)
-}
-
 // RenderKS 渲染指定主机的专属 ks.cfg。
 // mac: 客户端 MAC；tplID: 指定 KS 模板 ID（0 表示自动匹配）；
 // imageName: 指定软件源镜像名称（空则用默认生效镜像）。
+// 优先使用磁盘 web_root/ks.cfg（便于覆盖/调试），否则回退到数据库模板。
 func RenderKS(cfg *config.Manager, mac string, tplID int64, imageName string) (string, error) {
-	return renderKS(cfg, mac, tplID, imageName, true)
-}
-
-func renderKS(cfg *config.Manager, mac string, tplID int64, imageName string, useDisk bool) (string, error) {
-	// 获取模板：useDisk=true 时优先磁盘 ks.cfg；useDisk=false 时只用数据库
+	// 获取模板：优先磁盘 ks.cfg，否则用数据库模板
 	var tpl *model.KSTemplate
-	if useDisk {
-		if diskContent, ok := loadDiskKSTemplate(cfg); ok {
-			tpl = &model.KSTemplate{Content: diskContent}
-		}
+	if diskContent, ok := loadDiskKSTemplate(cfg); ok {
+		tpl = &model.KSTemplate{Content: diskContent}
 	}
 	if tpl == nil && tplID > 0 {
 		if t, err := db.GetKSTemplate(tplID); err == nil {
@@ -61,11 +51,11 @@ func renderKS(cfg *config.Manager, mac string, tplID int64, imageName string, us
 	content = stripSection(content, "%post")
 
 	// 3. %pre 阶段动态内容（架构识别、磁盘筛选、软件源、LVM 分区）
-	preScript := buildPreScript(cfg, imageName)
+	preScript := buildPreScript(imageName)
 	content = injectPre(content, preScript)
 
 	// 4. %post 阶段注入部署脚本拉取
-	postScript := buildPostScript(cfg, mac)
+	postScript := buildPostScript(mac)
 	content = injectPost(content, postScript)
 
 	return content, nil
@@ -75,13 +65,17 @@ func renderKS(cfg *config.Manager, mac string, tplID int64, imageName string, us
 // 参考 pxe/install-pxe-common.sh 的 Kickstart %pre 逻辑：
 // 识别架构 → 生成 /tmp/arch-repo（软件源）→ 筛选系统盘 → 生成 /tmp/partinfo（LVM 分区方案）。
 // 模板通过 %include /tmp/arch-repo 与 %include /tmp/partinfo 引入。
-func buildPreScript(cfg *config.Manager, imageName string) string {
-	// 软件源 URL 前缀（如 /euler1）：优先用手动选择的镜像名称，否则用默认生效镜像
+func buildPreScript(imageName string) string {
+	// 软件源 URL 前缀（如 /repo/euler1）：优先用手动选择的镜像名称，否则用默认生效镜像
 	repoPrefix := ""
 	if imageName != "" {
 		repoPrefix = normRepoPath(imageName)
 	} else {
 		repoPrefix = resolveInstallRepoPrefix()
+	}
+	// 安装源统一位于 web_root/repo 下，URL 需带 /repo 前缀
+	if repoPrefix != "" {
+		repoPrefix = "/repo" + repoPrefix
 	}
 
 	var b strings.Builder
@@ -103,7 +97,7 @@ func buildPreScript(cfg *config.Manager, imageName string) string {
 	if repoPrefix != "" {
 		b.WriteString("url --url=http://@@PXE_SERVER@@" + repoPrefix + "/${REPO_ARCH}/\n")
 	} else {
-		b.WriteString("url --url=http://@@PXE_SERVER@@/euler2110/${REPO_ARCH}/\n")
+		b.WriteString("url --url=http://@@PXE_SERVER@@/repo/euler2110/${REPO_ARCH}/\n")
 	}
 	b.WriteString("REPO_EOF\n")
 
@@ -133,7 +127,7 @@ func buildPreScript(cfg *config.Manager, imageName string) string {
 }
 
 // buildPostScript 生成 %post 阶段脚本：使用 curl 拉取并执行远端运维部署脚本。
-func buildPostScript(cfg *config.Manager, mac string) string {
+func buildPostScript(mac string) string {
 	var b strings.Builder
 	b.WriteString("\n# ===== 动态生成 %post 脚本 =====\n")
 	b.WriteString("mkdir -p /root\n")
@@ -232,12 +226,12 @@ func stripSection(content, marker string) string {
 	return content
 }
 
-var errNoTemplate = errNew3("no ks template available")
+var errNoTemplate = errNew("no ks template available")
 
-type errString3 string
+type errString string
 
-func errNew3(s string) error       { return errString3(s) }
-func (e errString3) Error() string { return string(e) }
+func errNew(s string) error        { return errString(s) }
+func (e errString) Error() string  { return string(e) }
 
 // resolveInstallRepoPrefix 解析用于 %pre 软件源 URL 的镜像名称前缀（如 /euler1）。
 // 取当前默认生效镜像的名称；无生效镜像时取首个镜像；均无则返回空。

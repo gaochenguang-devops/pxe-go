@@ -82,10 +82,3 @@ func SetActiveIPxeScript(id int64) (*model.IPxeScript, error) {
 	}
 	return GetIPxeScript(id)
 }
-
-// CountIPxeScripts 统计 iPXE 脚本数量。
-func CountIPxeScripts() (int, error) {
-	var n int
-	err := DB.QueryRow(`SELECT COUNT(1) FROM ipxe_script`).Scan(&n)
-	return n, err
-}

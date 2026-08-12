@@ -49,7 +49,8 @@ do_install() {
 
     # 创建目录结构
     log_info "创建目录结构..."
-    mkdir -p "${INSTALL_DIR}"/{data,logs,assets/web_root,assets/tftp_root,assets/arm_packages}
+    mkdir -p "${INSTALL_DIR}"/{data,logs,assets/web_root,assets/tftp_root}
+    mkdir -p "${INSTALL_DIR}/assets/web_root/repo"
     mkdir -p "${INSTALL_DIR}/assets/web_root/uploads"
 
     # 复制文件

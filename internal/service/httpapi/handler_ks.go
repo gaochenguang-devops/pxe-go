@@ -184,28 +184,3 @@ func (s *Server) replaceKSTemplatePlaceholders(t *model.KSTemplate) string {
 	}
 	return content
 }
-
-// handleListImages 镜像列表。
-func (s *Server) handleListImages(c *gin.Context) {
-	list, err := db.ListOSImages()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"code": 0, "data": list})
-}
-
-// handleDeleteImage 删除镜像。
-func (s *Server) handleDeleteImage(c *gin.Context) {
-	id := parseInt64(c.Param("id"))
-	if id <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效ID"})
-		return
-	}
-	if err := db.DeleteOSImage(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
-		return
-	}
-	s.writeLog(c, "image_delete", "删除镜像 ID="+int64Str(id))
-	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "已删除"})
-}

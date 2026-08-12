@@ -78,6 +78,9 @@ func main() {
 		logger.Warn("默认部署脚本初始化跳过: %v", err)
 	}
 
+	// 扫描 web_root/repo 下的镜像安装源目录，与数据库自动同步（repo_path 统一为 /repo/{镜像名}/{架构}）
+	syncImageDirectories(cfg.HTTP().WebRoot)
+
 	// 启动三大服务
 	dhcpSrv := dhcp.NewServer(cfg)
 	if err := dhcpSrv.Start(); err != nil {

@@ -10,8 +10,8 @@ import (
 	"pxe-server/internal/model"
 )
 
-// syncImageDirectories 扫描 web_root 下的镜像目录，与数据库自动同步。
-// 目录结构: web_root/{镜像名}/{x86_64|aarch64}/
+// syncImageDirectories 扫描 web_root/repo 下的镜像安装源目录，与数据库自动同步。
+// 目录结构: web_root/repo/{镜像名}/{x86_64|aarch64}/
 // 如果 {架构} 目录存在且包含 repodata/ 子目录，则认为是有效的 YUM repo。
 // 如果 {架构} 目录存在且包含 .iso 文件，则记录 ISO 路径。
 func syncImageDirectories(webRoot string) {
@@ -19,13 +19,14 @@ func syncImageDirectories(webRoot string) {
 		webRoot = "assets/web_root"
 	}
 
-	entries, err := os.ReadDir(webRoot)
+	repoRoot := filepath.Join(webRoot, "repo")
+	entries, err := os.ReadDir(repoRoot)
 	if err != nil {
-		logger.Warn("镜像目录扫描失败 (web_root=%s): %v", webRoot, err)
+		logger.Warn("镜像目录扫描失败 (repo=%s): %v", repoRoot, err)
 		return
 	}
 
-	logger.Info("开始扫描镜像目录: %s", webRoot)
+	logger.Info("开始扫描镜像目录: %s", repoRoot)
 	synced := 0
 
 	for _, entry := range entries {
@@ -34,11 +35,11 @@ func syncImageDirectories(webRoot string) {
 		}
 		imgName := entry.Name()
 		// 跳过系统目录
-		if imgName == "uploads" || strings.HasPrefix(imgName, ".") || imgName == "ui" {
+		if imgName == "isos" || strings.HasPrefix(imgName, ".") {
 			continue
 		}
 
-		imgDir := filepath.Join(webRoot, imgName)
+		imgDir := filepath.Join(repoRoot, imgName)
 		img := &model.OSImage{
 			Name: imgName,
 		}
@@ -46,13 +47,13 @@ func syncImageDirectories(webRoot string) {
 		// 扫描 x86_64
 		x86Dir := filepath.Join(imgDir, "x86_64")
 		if info, err := os.Stat(x86Dir); err == nil && info.IsDir() {
-			img.X86RepoPath = "/" + imgName + "/x86_64"
+			img.X86RepoPath = "/repo/" + imgName + "/x86_64"
 		}
 
 		// 扫描 aarch64
 		armDir := filepath.Join(imgDir, "aarch64")
 		if info, err := os.Stat(armDir); err == nil && info.IsDir() {
-			img.ArmRepoPath = "/" + imgName + "/aarch64"
+			img.ArmRepoPath = "/repo/" + imgName + "/aarch64"
 		}
 
 		// 至少有一个架构目录才入库

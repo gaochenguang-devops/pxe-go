@@ -2,6 +2,7 @@
 package middleware
 
 import (
+	crand "crypto/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -52,19 +53,26 @@ func ValidToken(token string) bool {
 }
 
 func randToken() string {
-	b := make([]byte, 16)
-	seed := time.Now().UnixNano()
-	for i := range b {
-		seed = seed*1103515245 + 12345
-		b[i] = byte(seed >> (i % 8 * 8) & 0xff)
+	// 使用 crypto/rand 生成 32 字节随机数，保证并发下不碰撞且不可预测
+	b := make([]byte, 24)
+	if _, err := crand.Read(b); err != nil {
+		// 极罕见失败时回退到时间 + 计数兜底，避免返回空 token
+		seed := time.Now().UnixNano() + randFallbackCounter
+		randFallbackCounter++
+		for i := range b {
+			seed = seed*1103515245 + 12345
+			b[i] = byte(seed >> (i % 8 * 8) & 0xff)
+		}
 	}
 	const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	out := make([]byte, 32)
 	for i := range out {
-		out[i] = chars[int(b[i%16])%len(chars)]
+		out[i] = chars[int(b[i%len(b)])%len(chars)]
 	}
 	return string(out)
 }
+
+var randFallbackCounter int64
 
 // AuthRequired 登录鉴权中间件。
 func AuthRequired() gin.HandlerFunc {

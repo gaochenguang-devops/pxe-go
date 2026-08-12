@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	// 纯 Go SQLite 驱动，无 CGO 依赖，可静态编译，规避 glibc 版本问题。
+	_ "modernc.org/sqlite"
 
 	"pxe-server/internal/model"
 )
@@ -25,7 +26,8 @@ func Init(dbPath string) error {
 		return err
 	}
 	var err error
-	DB, err = sql.Open("sqlite3", dbPath+"?_busy_timeout=5000&_journal_mode=WAL")
+	// modernc.org/sqlite 的 DSN pragma 使用 _pragma= 语法（区别于 go-sqlite3）
+	DB, err = sql.Open("sqlite", dbPath+"?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)")
 	if err != nil {
 		return err
 	}

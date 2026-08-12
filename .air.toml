@@ -13,14 +13,14 @@ env = ["CGO_ENABLED=1"]
   cmd = "go build -o ./tmp/pxe-server.exe ./cmd/server"
   delay = 1000
   entrypoint = ["./tmp/pxe-server.exe"]
-  exclude_dir = ["tmp", "vendor", "testdata", "data", "logs", "assets/arm_packages"]
+  exclude_dir = ["tmp", "vendor", "testdata", "data", "logs"]
   exclude_file = []
   exclude_regex = ["_test.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
   ignore_dangerous_root_dir = false
-  include_dir = ["internal", "cmd", "assets/web_root"]
+  include_dir = ["internal", "cmd", "web"]
   include_ext = ["go", "html", "css", "js"]
   include_file = []
   kill_delay = "0s"

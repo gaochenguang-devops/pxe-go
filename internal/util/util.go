@@ -120,15 +120,6 @@ func UnzipToDir(zipPath, dest string) ([]string, error) {
 	return files, nil
 }
 
-// FileSize 获取文件大小（字节）。
-func FileSize(path string) (int64, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return 0, err
-	}
-	return info.Size(), nil
-}
-
 // EncryptPassword 简单加密（XOR + base64），避免数据库明文裸存。
 func EncryptPassword(plain string, key string) string {
 	if plain == "" {

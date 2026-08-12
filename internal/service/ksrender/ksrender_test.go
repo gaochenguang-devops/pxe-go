@@ -58,7 +58,7 @@ func TestInjectIgnoresCommentMention(t *testing.T) {
 }
 
 func TestBuildPreScriptHasLVM(t *testing.T) {
-	s := buildPreScript(nil, "")
+	s := buildPreScript("")
 	if !strings.Contains(s, "volgroup bel") {
 		t.Error("pre script missing LVM volgroup")
 	}
@@ -77,7 +77,7 @@ func TestBuildPreScriptHasLVM(t *testing.T) {
 }
 
 func TestBuildPostScriptPullsScripts(t *testing.T) {
-	s := buildPostScript(nil, "00:11:22:33:44:55")
+	s := buildPostScript("00:11:22:33:44:55")
 	if !strings.Contains(s, "deploy.sh") || !strings.Contains(s, "lldp.sh") {
 		t.Error("post script missing deploy scripts")
 	}

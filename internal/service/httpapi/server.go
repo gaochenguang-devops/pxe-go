@@ -13,13 +13,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"pxe-server/assets"
 	"pxe-server/internal/config"
 	"pxe-server/internal/db"
 	"pxe-server/internal/logger"
 	"pxe-server/internal/middleware"
 	"pxe-server/internal/service/ipmi"
 	"pxe-server/internal/util"
+	"pxe-server/web"
 )
 
 // Server HTTP API 服务。
@@ -153,11 +153,11 @@ func (s *Server) registerRoutes() {
 }
 
 // registerWebUI 注册后台静态页面。
-// 优先使用磁盘 web_root/ui（便于覆盖/调试）；磁盘不存在时回退到嵌入二进制的 UI，
+// 优先使用磁盘 web/ui（便于本地覆盖/调试）；磁盘不存在时回退到嵌入二进制的 UI，
 // 支持单文件分发（仅随二进制即可运行管理后台）。
 func (s *Server) registerWebUI() {
-	// 磁盘 Web UI 目录
-	uiDir := filepath.Join(s.cfg.HTTP().WebRoot, "ui")
+	// 磁盘 Web UI 目录（相对项目根）
+	uiDir := filepath.Join("web", "ui")
 	if _, err := os.Stat(filepath.Join(uiDir, "index.html")); err == nil {
 		s.registerDiskUI(uiDir)
 		return
@@ -184,14 +184,14 @@ func (s *Server) registerDiskUI(uiDir string) {
 
 // registerEmbeddedUI 从嵌入二进制的资源提供管理后台页面。
 func (s *Server) registerEmbeddedUI() error {
-	sub, err := fs.Sub(assets.UI, "web_root/ui")
+	sub, err := fs.Sub(web.UI, "ui")
 	if err != nil {
 		return err
 	}
 	logger.Info("Web UI 使用嵌入资源")
 	fileServer := http.FileServer(http.FS(sub))
 	// /ui/*filepath 提供嵌入资源（css/js 子目录等）。
-	// http.FileServer 从 sub FS root（已设为 web_root/ui）查找，故需去掉 URL 中的 "/ui" 前缀。
+	// http.FileServer 从 sub FS root（已设为 ui）查找，故需去掉 URL 中的 "/ui" 前缀。
 	s.engine.GET("/ui/*filepath", func(c *gin.Context) {
 		fp := strings.TrimPrefix(c.Param("filepath"), "/")
 		c.Request.URL.Path = "/" + fp
@@ -231,8 +231,8 @@ func (s *Server) registerStaticResource() {
 	// （注意：需在 /ks/:mac/ks.cfg 之后注册，避免通配冲突；客户端无论请求 /ks.cfg 还是 /ks/{mac}/ks.cfg 都能得到完整 ks。）
 	s.engine.GET("/ks.cfg", s.handleKickstartGeneric)
 
-	// 安装源目录（euler2110/x86_64、aarch64 等）
-	s.engine.Static("/euler2110", filepath.Join(httpRoot, "euler2110"))
+	// 安装源目录（repo/{镜像名}/{x86_64|aarch64} 等）
+	s.engine.Static("/repo", filepath.Join(httpRoot, "repo"))
 	// 通用静态文件服务（防穿越由 util 校验，这里仅服务文件）
 	s.engine.GET("/files/*filepath", s.serveStaticFile(httpRoot))
 	// 上传目录：web_root/uploads 下的文件公开可访问（无需登录），供所有人下载

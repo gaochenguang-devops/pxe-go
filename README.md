@@ -39,9 +39,12 @@ pxe-server
 │   ├── handler                  （控制器逻辑在 httpapi 内实现）
 │   ├── middleware               登录鉴权、跨域、请求日志、接口限流
 │   └── util                     工具集：IP/MAC 校验、路径防穿越、ZIP 解压、字符串替换、密码加密
+├── web
+│   └── ui                        Web 管理后台前端源码（编译进二进制，支持单文件分发）
 ├── assets
 │   ├── tftp_root                TFTP 文件存储目录（含默认 autoexec.ipxe）
-│   └── web_root                 HTTP 安装源、部署脚本、KS 模板、Web UI
+│   └── web_root                 HTTP 安装源、部署脚本、KS 模板（运行时生成，不入版本库）
+│       └── repo                系统镜像安装源（{镜像名}/{x86_64|aarch64}）
 ├── deploy/pxe-server.service    systemd 开机自启配置
 ├── Makefile
 ├── go.mod / go.sum
@@ -139,9 +142,8 @@ sudo systemctl status pxe-server
 - `assets/tftp_root/autoexec.ipxe`：BC Linux for Euler 21.10 启动菜单（`cpuid`/`buildarch` 架构自动识别），完整内核启动参数（`inst.repo`、`inst.stage2`、`ksdevice=bootif`、`BOOTIF`、串口 console、`inst.text`）。
 - `assets/web_root/ks.cfg`：生产对齐 KS 模板——`%include /tmp/arch-repo` 与 `%include /tmp/partinfo`（由服务端动态 `%pre` 生成）、真实 LVM 分区方案（`bel` 卷组 + swap/root/home/var）、生产 `%packages` 包列表、`%addon` 段；`%post` 动态拉取部署脚本。
 - `assets/web_root/deploy.sh`：生产对齐部署脚本——Bond 网络（bond0/bond1/bond2）、IPMI 识别匹配 node-info、主机名、YUM 源、内核参数优化、SSH 免密、NIC 驱动/固件安装、内核降级、装机完成上报。
-- `assets/web_root/lldp.sh` / `ping.sh`：生产对齐——LLDP 邻居发现（交换机/端口/MAC）、IP 范围批量连通探测。
+- `assets/web_root/lldp.sh`：生产对齐——LLDP 邻居发现（交换机/端口/MAC）。
 - `assets/web_root/node-info.txt`：空格分隔节点信息表（IPMI 主机名 bond0 bond2 bond1），列格式与生产一致，供 deploy.sh 按 IPMI 匹配。
-- `assets/web_root/report-server.py`：可选装机完成上报服务（默认端口 18080），与生产一致，可配合 `deploy.sh` 完成装机状态回传。
 
 ---
 
@@ -152,7 +154,7 @@ sudo systemctl status pxe-server
 1. 登录后台 → 「资源管理」。
 2. 上传 iPXE 固件：`undionly.kpxe`（BIOS）、`ipxe-x86_64.efi`（x86_64 UEFI）、`ipxe-aarch64.efi`（aarch64 UEFI），目标选「TFTP 根目录」。
 3. 上传各架构 `vmlinuz`、`initrd.img`、iPXE 脚本（目标 TFTP）。
-4. 上传 `/euler2110/x86_64/`、`/euler2110/aarch64/` 安装源（可打 ZIP，目标「HTTP 资源目录」），自动解压归档。
+4. 上传安装源镜像（如 `euler2110` 的 `x86_64/`、`aarch64/`，可打 ZIP，目标「HTTP 资源目录」），自动解压归档至 `web_root/repo/{镜像名}/{架构}`。
 
 ### 2）配置 DHCP 网段与 PXE 服务 IP
 

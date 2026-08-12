@@ -56,16 +56,11 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Install arm64 cross compiler
-        if: inputs.arch == 'arm64'
-        run: sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
-
-      - name: Build linux binary
+      - name: Build linux binary (pure Go, no CGO)
         env:
           GOOS: linux
           GOARCH: ${{ inputs.arch }}
-          CGO_ENABLED: "1"
-          CC: ${{ inputs.arch == 'arm64' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
+          CGO_ENABLED: "0"
           VERSION: ${{ github.sha }}
         # 产物命名与 deploy.sh BIN_NAME 一致（pxe-server-linux-<arch>）
         run: go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o pxe-server-linux-${{ inputs.arch }} ./cmd/server

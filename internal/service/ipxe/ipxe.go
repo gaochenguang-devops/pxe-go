@@ -48,20 +48,12 @@ func RenderAutoexecForImage(cfg *config.Manager, imageID int64, name, arch strin
 	b.WriteString("iseq ${buildarch} i386 && set arch x86_64 ||\n")
 	b.WriteString("iseq ${buildarch} arm64 && set arch aarch64 ||\n")
 	b.WriteString("isset ${arch}\n\n")
-	b.WriteString("kernel ${boot_root}/" + name + "/${arch}/images/pxeboot/vmlinuz initrd=initrd.img inst.repo=${boot_root}/" + name + "/${arch} inst.stage2=${boot_root}/" + name + "/${arch} network noipv6 ip=dhcp ksdevice=bootif BOOTIF=${net0/mac} ks=${ks_root}/ks.cfg console=tty0 console=ttyS0,115200n8 inst.text\n")
-	b.WriteString("initrd ${boot_root}/" + name + "/${arch}/images/pxeboot/initrd.img\n")
+	b.WriteString("kernel ${boot_root}/repo/" + name + "/${arch}/images/pxeboot/vmlinuz initrd=initrd.img inst.repo=${boot_root}/repo/" + name + "/${arch} inst.stage2=${boot_root}/repo/" + name + "/${arch} network noipv6 ip=dhcp ksdevice=bootif BOOTIF=${net0/mac} ks=${ks_root}/ks.cfg console=tty0 console=ttyS0,115200n8 inst.text\n")
+	b.WriteString("initrd ${boot_root}/repo/" + name + "/${arch}/images/pxeboot/initrd.img\n")
 	b.WriteString("boot\n\n")
 	b.WriteString(":reboot\n")
 	b.WriteString("reboot\n\n")
 	b.WriteString(":exit\n")
 	b.WriteString("exit\n")
 	return b.String()
-}
-
-// getSerialConsole 根据架构返回串口控制台内核参数。
-func getSerialConsole(arch string) string {
-	if strings.Contains(arch, "arm") || strings.Contains(arch, "aarch") {
-		return " console=ttyAMA0,115200"
-	}
-	return " console=ttyS0,115200"
 }
