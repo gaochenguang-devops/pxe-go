@@ -9,7 +9,6 @@ set -e
 APP_NAME="pxe-server"
 INSTALL_DIR="/opt/${APP_NAME}"
 SERVICE_NAME="pxe-server.service"
-BIN_NAME="pxe-server-linux"
 ARCH=$(uname -m)
 
 # 颜色
@@ -38,6 +37,9 @@ detect_arch() {
         *)       log_error "不支持的架构: $ARCH"; exit 1 ;;
     esac
 }
+
+# 二进制命名与 CI/Release 产物一致（pxe-server-linux-<arch>）
+BIN_NAME="pxe-server-linux-$(detect_arch)"
 
 # 安装
 do_install() {
@@ -201,8 +203,8 @@ usage() {
     echo "  status      查看服务状态"
     echo ""
     echo "首次部署步骤:"
-    echo "  1. 在开发机上执行: make linux"
-    echo "  2. 将 pxe-server-linux 和 deploy/ 目录上传到服务器"
+    echo "  1. 在开发机上执行: make linux  （或从 GitHub Release 下载 pxe-server-linux-<arch>.tar.gz）"
+    echo "  2. 将 pxe-server-linux-<arch> 和 deploy/ 目录上传到服务器"
     echo "  3. 在服务器上执行: sudo bash deploy/deploy.sh install"
     echo ""
 }

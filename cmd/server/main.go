@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,14 +18,24 @@ import (
 	"pxe-server/internal/service/tftp"
 )
 
+// version 通过 -ldflags "-X main.version=<tag>" 注入，未指定时默认为 dev。
+var version = "dev"
+
 var (
 	dbPath    = flag.String("db", "data/pxe-server.db", "SQLite 数据库文件路径")
 	logPath   = flag.String("log", "logs/pxe-server.log", "日志文件路径（留空则仅控制台）")
 	logLevel  = flag.String("level", "info", "日志级别: debug/info/warn/error")
+	showVer   = flag.Bool("v", false, "显示版本号后退出")
 )
 
 func main() {
 	flag.Parse()
+
+	// -v 显示版本并退出
+	if *showVer {
+		fmt.Printf("pxe-server %s\n", version)
+		os.Exit(0)
+	}
 
 	// 初始化日志
 	lv := logger.LevelInfo
@@ -38,7 +49,7 @@ func main() {
 	}
 	logger.Init(*logPath, 20, 10, lv)
 
-	logger.Info("===== PXE 装机服务启动 =====")
+	logger.Info("===== PXE 装机服务启动 (version: %s) =====", version)
 
 	// 初始化数据库
 	if err := db.Init(*dbPath); err != nil {

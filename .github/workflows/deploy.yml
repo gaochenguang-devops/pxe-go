@@ -66,12 +66,14 @@ jobs:
           GOARCH: ${{ inputs.arch }}
           CGO_ENABLED: "1"
           CC: ${{ inputs.arch == 'arm64' && 'aarch64-linux-gnu-gcc' || 'gcc' }}
-        run: go build -trimpath -ldflags "-s -w" -o pxe-server-linux ./cmd/server
+          VERSION: ${{ github.sha }}
+        # 产物命名与 deploy.sh BIN_NAME 一致（pxe-server-linux-<arch>）
+        run: go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o pxe-server-linux-${{ inputs.arch }} ./cmd/server
 
       - name: Prepare deploy package
         run: |
           mkdir -p .deploy
-          cp pxe-server-linux .deploy/
+          cp pxe-server-linux-${{ inputs.arch }} .deploy/
           cp -r deploy .deploy/
           cp -r assets .deploy/
           ls -lhR .deploy

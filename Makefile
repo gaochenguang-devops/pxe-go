@@ -7,9 +7,9 @@ AIR ?= air
 build:
 	$(GO) build -o pxe-server ./cmd/server
 
-# Linux amd64 交叉编译
+# Linux amd64 交叉编译（产物命名与 deploy.sh BIN_NAME / CI 一致）
 linux:
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO) build -o pxe-server-linux ./cmd/server
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO) build -o pxe-server-linux-amd64 ./cmd/server
 
 # Linux arm64 交叉编译（aarch64 装机端如为 ARM 服务器本机跑）
 linux-arm:
@@ -26,5 +26,5 @@ test:
 	$(GO) test ./... -v
 
 clean:
-	rm -f pxe-server pxe-server-linux pxe-server-linux-arm64
+	rm -f pxe-server pxe-server-linux-amd64 pxe-server-linux-arm64
 	rm -rf tmp/
