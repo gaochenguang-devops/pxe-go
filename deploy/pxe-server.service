@@ -1,0 +1,25 @@
+[Unit]
+Description=Go Integrated PXE Install Server (DHCP/TFTP/HTTP)
+Documentation=https://github.com/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# 按实际部署路径修改
+WorkingDirectory=/opt/pxe-server
+ExecStart=/opt/pxe-server/pxe-server -db /opt/pxe-server/data/pxe-server.db -log /opt/pxe-server/logs/pxe-server.log
+Restart=always
+RestartSec=5
+LimitNOFILE=65535
+# 关闭标准错误输出到 journald，仅保留文件日志
+StandardOutput=journal
+StandardError=journal
+# 安全加固
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ReadWritePaths=/opt/pxe-server/data /opt/pxe-server/logs /opt/pxe-server/assets
+
+[Install]
+WantedBy=multi-user.target

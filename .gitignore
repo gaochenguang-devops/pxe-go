@@ -1,0 +1,42 @@
+# ============ 编译产物 ============
+pxe-server
+pxe-server.exe
+*.test
+*.out
+bin/
+dist/
+tmp/
+
+# ============ 运行时数据 ============
+data/
+logs/
+
+# ============ 系统镜像/安装源（体积大，不纳入版本库）============
+assets/web_root/euler2110/
+assets/web_root/repo/
+assets/tftp_root/vmlinuz*
+assets/tftp_root/initrd*
+assets/web_root/centos7
+assets/web_root/euler
+assets/web_root/uploads
+assets/web_root/deploy.sh
+assets/web_root/node-info.txt
+
+# ============ Go 工具缓存与临时文件 ============
+*.cover
+coverage.html
+coverage.out
+vendor/
+
+# ============ 编辑器/IDE ============
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ============ 系统文件 ============
+.DS_Store
+Thumbs.db
+
+# ============ 日志与调试 ============
+*.log

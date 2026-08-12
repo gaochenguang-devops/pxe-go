@@ -1,0 +1,31 @@
+#!ipxe
+
+set boot_root http://192.168.200.1
+set ks_root http://192.168.200.1
+
+:start
+menu Install centos7
+item --gap --   -------------------------------------------------------------------------------
+item bclinux [1] Install centos7 (auto architecture)
+item reboot  [2] Reboot
+item exit    [3] Boot from local disk
+item --gap --   -------------------------------------------------------------------------------
+choose --default bclinux --timeout 3000 target || goto exit
+goto ${target}
+
+:bclinux
+dhcp
+cpuid --ext 29 && set arch x86_64 ||
+iseq ${buildarch} i386 && set arch x86_64 ||
+iseq ${buildarch} arm64 && set arch aarch64 ||
+isset ${arch}
+
+kernel ${boot_root}/centos7/${arch}/images/pxeboot/vmlinuz initrd=initrd.img inst.repo=${boot_root}/centos7/${arch} inst.stage2=${boot_root}/centos7/${arch} network noipv6 ip=dhcp ksdevice=bootif BOOTIF=${net0/mac} ks=${ks_root}/ks.cfg console=tty0 console=ttyS0,115200n8 inst.text
+initrd ${boot_root}/centos7/${arch}/images/pxeboot/initrd.img
+boot
+
+:reboot
+reboot
+
+:exit
+exit

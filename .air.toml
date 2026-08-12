@@ -1,0 +1,47 @@
+#:schema https://json.schemastore.org/any.json
+
+env_files = []
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+env = ["CGO_ENABLED=1"]
+
+[build]
+  args_bin = ["-db", "data/pxe-server.db", "-log", "logs/pxe-server.log", "-level", "debug"]
+  bin = "tmp/pxe-server.exe"
+  cmd = "go build -o ./tmp/pxe-server.exe ./cmd/server"
+  delay = 1000
+  entrypoint = ["./tmp/pxe-server.exe"]
+  exclude_dir = ["tmp", "vendor", "testdata", "data", "logs", "assets/arm_packages"]
+  exclude_file = []
+  exclude_regex = ["_test.go"]
+  exclude_unchanged = false
+  follow_symlink = false
+  full_bin = ""
+  ignore_dangerous_root_dir = false
+  include_dir = ["internal", "cmd", "assets/web_root"]
+  include_ext = ["go", "html", "css", "js"]
+  include_file = []
+  kill_delay = "0s"
+  log = "build-errors.log"
+  poll = false
+  poll_interval = 0
+  post_cmd = []
+  pre_cmd = []
+  rerun = false
+  rerun_delay = 500
+  send_interrupt = true
+  stop_on_error = false
+
+[log]
+  main_only = false
+  silent = false
+  time = false
+
+[misc]
+  clean_on_exit = true
+
+[screen]
+  clear_on_rebuild = false
+  keep_scroll = true
