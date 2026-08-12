@@ -1,0 +1,567 @@
+openapi: 3.0.3
+info:
+  title: pxe-server API
+  description: |
+    Go 一体化 PXE 装机服务接口。
+
+    所有管理接口需先 `POST /api/login` 获取 token，并在请求头携带 `Authorization: <token>`。
+    客户端直连接口（装机过程自动访问）无需登录。
+
+    完整使用说明见 docs/API.md。
+  version: "1.0.0"
+servers:
+  - url: http://{PXE_IP}
+    variables:
+      PXE_IP:
+        default: 192.168.10.10
+        description: pxe-server 服务 IP
+
+tags:
+  - name: 鉴权
+  - name: 配置
+  - name: 资源与镜像
+  - name: 主机与IPMI
+  - name: KS与iPXE
+  - name: 装机
+  - name: 文件管理
+  - name: 状态与日志
+  - name: 客户端直连
+
+# ==================== 安全方案 ====================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: token
+  schemas:
+    ApiResp:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 0=成功
+        msg:
+          type: string
+        data:
+          description: 业务数据（接口相关）
+    LoginReq:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string, example: admin }
+        password: { type: string, example: admin123 }
+    HostReq:
+      type: object
+      properties:
+        hostname: { type: string, example: node-001 }
+        ipmi_addr: { type: string, example: "10.0.0.101" }
+        ipmi_user: { type: string, example: admin }
+        ipmi_pass: { type: string, example: secret }
+        install_status: { type: string, example: idle }
+    OSImage:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string, example: euler1 }
+        x86_repo_path: { type: string, example: /repo/euler1/x86_64 }
+        arm_repo_path: { type: string, example: /repo/euler1/aarch64 }
+        active: { type: integer, example: 1 }
+
+security:
+  - BearerAuth: []
+
+# ==================== 路径 ====================
+paths:
+  # ---------- 鉴权 ----------
+  /api/login:
+    post:
+      tags: [鉴权]
+      summary: 登录，获取 token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginReq" }
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  msg: { type: string, example: 登录成功 }
+                  data:
+                    type: object
+                    properties:
+                      token: { type: string, example: aBcDeF... }
+  /api/logout:
+    post:
+      tags: [鉴权]
+      summary: 登出，使 token 失效
+      responses:
+        "200":
+          description: 成功
+  /api/password:
+    put:
+      tags: [鉴权]
+      summary: 修改管理员密码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password: { type: string }
+                new_password: { type: string }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 配置 ----------
+  /api/config:
+    get:
+      tags: [配置]
+      summary: 获取全部配置（键值 Map）
+      responses:
+        "200":
+          description: 成功
+  /api/config/dhcp:
+    put:
+      tags: [配置]
+      summary: 更新 DHCP 配置（热重载）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                listen_ip: { type: string }
+                interface: { type: string }
+                pxe_ip: { type: string, example: "192.168.10.10" }
+                ip_pool_start: { type: string, example: "192.168.10.100" }
+                ip_pool_end: { type: string, example: "192.168.10.200" }
+                subnet_mask: { type: string, example: "255.255.255.0" }
+                gateway: { type: string }
+                dns_servers: { type: string }
+                lease_time: { type: integer }
+                boot_file_bios: { type: string, example: undionly.kpxe }
+                boot_file_x86: { type: string, example: ipxe-x86_64.efi }
+                boot_file_arm: { type: string, example: ipxe-aarch64.efi }
+                ipxe_script: { type: string, example: autoexec.ipxe }
+      responses:
+        "200":
+          description: 成功
+  /api/config/tftp:
+    put:
+      tags: [配置]
+      summary: 更新 TFTP 配置（热重载）
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled: { type: boolean }
+                listen_ip: { type: string }
+                root_dir: { type: string, example: assets/tftp_root }
+                transfer_timeout: { type: integer }
+                max_connections: { type: integer }
+                access_log: { type: boolean }
+      responses:
+        "200":
+          description: 成功
+  /api/config/http:
+    put:
+      tags: [配置]
+      summary: 更新 HTTP 配置
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                listen_addr: { type: string, example: "0.0.0.0:80" }
+                web_root: { type: string }
+                admin_user: { type: string }
+                admin_password: { type: string }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 资源与镜像 ----------
+  /api/resource:
+    get:
+      tags: [资源与镜像]
+      summary: 资源列表
+      responses:
+        "200":
+          description: 成功
+  /api/image:
+    get:
+      tags: [资源与镜像]
+      summary: 镜像列表
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: integer, example: 0 }
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/OSImage" }
+  /api/image/upload:
+    post:
+      tags: [资源与镜像]
+      summary: 上传系统镜像 ISO（自动解压到 /repo/{name}/{arch}）
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string, description: 镜像名（字母数字 _ -） }
+                x86_iso: { type: string, format: binary, description: x86_64 ISO }
+                arm_iso: { type: string, format: binary, description: aarch64 ISO }
+      responses:
+        "200":
+          description: 成功
+  /api/image/{id}:
+    delete:
+      tags: [资源与镜像]
+      summary: 删除镜像
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/image/{id}/active:
+    post:
+      tags: [资源与镜像]
+      summary: 设为默认安装镜像
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/image/{id}/boot-file:
+    post:
+      tags: [资源与镜像]
+      summary: 上传镜像引导文件（vmlinuz/initrd）
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [arch, file]
+              properties:
+                arch: { type: string, enum: [x86_64, aarch64] }
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 主机与 IPMI ----------
+  /api/host:
+    get:
+      tags: [主机与IPMI]
+      summary: 主机列表（支持分页/搜索）
+      parameters:
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: pageSize, in: query, schema: { type: integer } }
+        - { name: search, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: 成功
+    post:
+      tags: [主机与IPMI]
+      summary: 新增主机（IPMI 唯一）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HostReq" }
+      responses:
+        "200":
+          description: 成功
+        "409":
+          description: IPMI 已绑定其他主机
+  /api/host/{id}:
+    put:
+      tags: [主机与IPMI]
+      summary: 编辑主机
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HostReq" }
+      responses:
+        "200":
+          description: 成功
+    delete:
+      tags: [主机与IPMI]
+      summary: 删除主机
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/host/{id}/ipmi/power:
+    post:
+      tags: [主机与IPMI]
+      summary: IPMI 电源操作
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [on, off, cycle, reset, status] }
+      responses:
+        "200":
+          description: 成功
+  /api/host/{id}/ipmi/status:
+    get:
+      tags: [主机与IPMI]
+      summary: 查询电源状态
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/host/{id}/ipmi/boot:
+    post:
+      tags: [主机与IPMI]
+      summary: 设置下次启动设备
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device]
+              properties:
+                device: { type: string, enum: [pxe, disk] }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- KS 与 iPXE ----------
+  /api/ks/template:
+    get:
+      tags: [KS与iPXE]
+      summary: KS 模板列表
+      responses:
+        "200":
+          description: 成功
+    post:
+      tags: [KS与iPXE]
+      summary: 新增 KS 模板
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, content]
+              properties:
+                name: { type: string }
+                os_type: { type: string }
+                content: { type: string, description: KS 模板内容 }
+                root_password: { type: string }
+      responses:
+        "200":
+          description: 成功
+  /api/ks/template/{id}:
+    put:
+      tags: [KS与iPXE]
+      summary: 编辑 KS 模板
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+    delete:
+      tags: [KS与iPXE]
+      summary: 删除 KS 模板
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/ks/template/{id}/active:
+    post:
+      tags: [KS与iPXE]
+      summary: 设为生效 KS 模板
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/ks/template/render:
+    get:
+      tags: [KS与iPXE]
+      summary: 渲染当前生效 KS
+      responses:
+        "200":
+          description: 成功
+  /api/ipxe/script:
+    get:
+      tags: [KS与iPXE]
+      summary: iPXE 脚本列表
+      responses:
+        "200":
+          description: 成功
+    post:
+      tags: [KS与iPXE]
+      summary: 新增 iPXE 脚本
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, content]
+              properties:
+                name: { type: string }
+                content: { type: string }
+      responses:
+        "200":
+          description: 成功
+  /api/ipxe/script/{id}:
+    put:
+      tags: [KS与iPXE]
+      summary: 编辑 iPXE 脚本
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+    delete:
+      tags: [KS与iPXE]
+      summary: 删除 iPXE 脚本
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/ipxe/script/{id}/active:
+    post:
+      tags: [KS与iPXE]
+      summary: 设为生效 iPXE 脚本
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: 成功
+  /api/ipxe/script/render:
+    get:
+      tags: [KS与iPXE]
+      summary: 按镜像渲染 autoexec.ipxe
+      parameters:
+        - { name: image_id, in: query, schema: { type: integer } }
+        - { name: name, in: query, schema: { type: string } }
+        - { name: arch, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 装机 ----------
+  /install-complete:
+    get:
+      tags: [装机]
+      summary: 装机完成上报（客户端直连，无需登录）
+      security: []
+      parameters:
+        - { name: status, in: query, schema: { type: string, default: success } }
+        - { name: hostname, in: query, schema: { type: string } }
+        - { name: ipmi, in: query, schema: { type: string } }
+        - { name: mac, in: query, schema: { type: string } }
+        - { name: ip, in: query, schema: { type: string } }
+        - { name: arch, in: query, schema: { type: string } }
+        - { name: interfaces, in: query, schema: { type: string } }
+        - { name: lldp, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: 成功
+  /api/install-records:
+    get:
+      tags: [装机]
+      summary: 查询装机完成记录
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, default: 0 } }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 文件管理 ----------
+  /api/file/upload:
+    post:
+      tags: [文件管理]
+      summary: 上传文件到 web_root/uploads
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: 成功
+  /api/file/list:
+    get:
+      tags: [文件管理]
+      summary: 文件列表
+      responses:
+        "200":
+          description: 成功
+  /api/file/{name}:
+    delete:
+      tags: [文件管理]
+      summary: 删除上传文件
+      parameters:
+        - { name: name, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- 状态与日志 ----------
+  /api/status:
+    get:
+      tags: [状态与日志]
+      summary: 服务状态检测
+      responses:
+        "200":
+          description: 成功
+  /api/operlog:
+    get:
+      tags: [状态与日志]
+      summary: 操作审计日志
+      responses:
+        "200":
+          description: 成功
+  /api/logfile:
+    get:
+      tags: [状态与日志]
+      summary: 实时日志
+      responses:
+        "200":
+          description: 成功

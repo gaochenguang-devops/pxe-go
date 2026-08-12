@@ -4,6 +4,8 @@
 
 支持 **BIOS x86、x86_64 UEFI、aarch64 ARM UEFI** 三架构 PXE 引导，业务逻辑 1:1 对齐现有 dnsmasq+ipxe+ks 装机流程，装机侧无需修改原有 KS / 部署脚本。
 
+> 📖 部署、操作与排障请参阅《[使用手册](docs/USER_MANUAL.md)》，脚本化/自动化 PXE 装机请参阅《[接口文档](docs/API.md)》。本文档侧重功能与设计介绍。
+
 ---
 
 ## 一、功能特性
@@ -46,6 +48,10 @@ pxe-server
 │   └── web_root                 HTTP 安装源、部署脚本、KS 模板（运行时生成，不入版本库）
 │       └── repo                系统镜像安装源（{镜像名}/{x86_64|aarch64}）
 ├── deploy/pxe-server.service    systemd 开机自启配置
+├── docs
+│   ├── USER_MANUAL.md          使用手册（部署/操作/装机流程/排障）
+│   ├── API.md                  接口文档（脚本化 PXE 装机与管理）
+│   └── openapi.yaml            OpenAPI 3.0 规范（可导入 Postman/Swagger）
 ├── Makefile
 ├── go.mod / go.sum
 └── README.md

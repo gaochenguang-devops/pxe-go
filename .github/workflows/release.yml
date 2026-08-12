@@ -42,11 +42,11 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: go build -trimpath -ldflags "-s -w -X main.version=${VERSION}" -o dist/pxe-server-linux-arm64 ./cmd/server
 
-      - name: Package artifacts (binary + assets + deploy)
+      - name: Package artifacts (binary + assets + deploy + docs)
         run: |
           set -e
           VERSION="${{ github.ref_name }}"   # 如 v1.2.0
-          # 打包单平台：二进制 pxe-server-linux-<arch> + assets 目录 + deploy（systemd）目录
+          # 打包单平台：二进制 pxe-server-linux-<arch> + assets + deploy + README + 使用手册
           # 二进制名与 deploy.sh 的 BIN_NAME 保持一致，解压后可直接 deploy.sh install/update
           package_platform() {
             local bin="$1" arch="$2"
@@ -57,7 +57,9 @@ jobs:
             chmod +x "$staging/pxe-server-linux-${arch}"
             cp -r assets "$staging/assets"
             cp -r deploy "$staging/deploy"
-            tar czf "dist/pxe-server-${VERSION}-linux-${arch}.tar.gz" -C "$staging" pxe-server-linux-${arch} assets deploy
+            cp -r docs "$staging/docs"
+            cp README.md "$staging/README.md"
+            tar czf "dist/pxe-server-${VERSION}-linux-${arch}.tar.gz" -C "$staging" pxe-server-linux-${arch} assets deploy docs README.md
           }
           package_platform dist/pxe-server-linux-amd64 amd64
           package_platform dist/pxe-server-linux-arm64 arm64

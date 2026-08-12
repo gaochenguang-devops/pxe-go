@@ -71,6 +71,8 @@ jobs:
           cp pxe-server-linux-${{ inputs.arch }} .deploy/
           cp -r deploy .deploy/
           cp -r assets .deploy/
+          cp -r docs .deploy/
+          cp README.md .deploy/
           ls -lhR .deploy
 
       - name: Upload to server
