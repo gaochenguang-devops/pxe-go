@@ -10,7 +10,7 @@
 
 ## 一、功能特性
 
-- **标准 DHCP 服务**（UDP 67，基于 `github.com/insomniacslk/dhcp`）：地址池分配、子网掩码/网关/DNS/租期下发、Option 66 指定 TFTP、Option 67 下发引导文件、按 **Option 93(client-arch)** 区分架构、识别 **Option 175 iPXE** 后下发 `autoexec.ipxe`。
+- **标准 DHCP 服务**（UDP 67，基于 `github.com/insomniacslk/dhcp`）：地址池分配、子网掩码/网关/DNS/租期下发、Option 66 指定 TFTP、Option 67 下发引导文件、按 **Option 93(client-arch)** 区分架构、识别 **Option 175 iPXE** 后下发 `autoexec.ipxe`。地址池**完全由子网（subnet）列表定义**（类似 ISC DHCP `subnet ... { option routers ...; range ...; }`），按请求来源 IP 或 giaddr（中继）自动匹配子网并下发对应网络参数，无匹配子网时拒绝分配。
 - **TFTP 服务**（UDP 69，基于 `github.com/pin/tftp`）：专属根目录只读下发引导固件、`autoexec.ipxe`；成熟库自动处理 `blksize`/`tsize` 等 option 协商（RFC 2347/2348/2349），路径防目录穿越、访问日志。
 - **HTTP Gin 服务**：Web 管理后台（登录鉴权）+ 静态安装源 + iPXE 动态脚本 + KS 模板渲染。
 - **主机资产表**：`ipmi_addr` 唯一索引，Web 新增重复 IPMI 直接拦截报错；支持 IPMI 开机/关机/硬重启/PXE 启动/BIOS 启动（调用服务器 `ipmitool`）。

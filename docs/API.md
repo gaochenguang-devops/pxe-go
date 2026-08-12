@@ -108,21 +108,29 @@ TOKEN=$(curl -s -X POST http://<IP>/api/login -H 'Content-Type: application/json
   -d '{"username":"admin","password":"admin123"}' | jq -r '.data.token')
 ```
 
-### 步骤 2：配置 DHCP（首次）
+### 步骤 2：配置 DHCP（首次：全局参数 + 子网地址池）
 
 ```bash
+# 全局参数
 curl -s -X PUT http://<IP>/api/config/dhcp -H "Authorization: $TOKEN" \
   -H 'Content-Type: application/json' -d '{
     "enabled": true,
     "pxe_ip": "<服务器IP>",
+    "boot_file_bios": "undionly.kpxe",
+    "boot_file_x86": "ipxe-x86_64.efi",
+    "boot_file_arm": "ipxe-aarch64.efi"
+  }'
+
+# 配置子网地址池（一个或多个）
+curl -s -X POST http://<IP>/api/config/dhcp/subnets -H "Authorization: $TOKEN" \
+  -H 'Content-Type: application/json' -d '{
+    "name": "办公子网",
     "ip_pool_start": "192.168.10.100",
     "ip_pool_end": "192.168.10.200",
     "subnet_mask": "255.255.255.0",
     "gateway": "192.168.10.1",
     "dns_servers": "192.168.10.1",
-    "boot_file_bios": "undionly.kpxe",
-    "boot_file_x86": "ipxe-x86_64.efi",
-    "boot_file_arm": "ipxe-aarch64.efi"
+    "enabled": true
   }'
 ```
 
@@ -184,18 +192,13 @@ curl -s http://<IP>/api/install-records -H "Authorization: $TOKEN"
 
 `PUT /api/config/dhcp`
 
-所有字段可选（部分更新，传哪个改哪个），保存后**自动热重载**：
+所有字段可选（部分更新，传哪个改哪个），保存后**自动热重载**。地址池不再在此配置，由子网接口（见 4.5）管理：
 ```json
 {
   "enabled": true,
   "listen_ip": "0.0.0.0",
   "interface": "eth0",
   "pxe_ip": "192.168.10.10",
-  "ip_pool_start": "192.168.10.100",
-  "ip_pool_end": "192.168.10.200",
-  "subnet_mask": "255.255.255.0",
-  "gateway": "192.168.10.1",
-  "dns_servers": "192.168.10.1",
   "lease_time": 3600,
   "boot_file_bios": "undionly.kpxe",
   "boot_file_x86": "ipxe-x86_64.efi",
@@ -233,6 +236,46 @@ curl -s http://<IP>/api/install-records -H "Authorization: $TOKEN"
 ```
 
 > 修改 `listen_addr` 后需重启进程生效；其余字段热重载。
+
+### 4.5 DHCP 子网管理（纯子网方式）
+
+DHCP 的**地址池完全由子网（subnet）列表定义**，不再保留单网段字段。配置多个子网后，服务器按以下优先级自动匹配对应子网，并下发该子网的地址池、掩码、网关与 DNS；**无匹配子网时拒绝分配（NAK/忽略）**：
+
+1. **GIADDR**（跨网段中继）——优先级最高，只要存在即为客户端所在子网网关
+2. **来源 IP**（客户端已持有 IP，如续约）
+3. **服务器监听/本机接口 IP**（同网段直连）——广播、源 `0.0.0.0`、无 GIADDR 时，用服务器所在网卡 IP 匹配子网
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/config/dhcp/subnets` | 子网列表 |
+| POST | `/api/config/dhcp/subnets` | 新增子网 |
+| PUT | `/api/config/dhcp/subnets/:id` | 更新子网 |
+| DELETE | `/api/config/dhcp/subnets/:id` | 删除子网 |
+
+新增/更新子网请求体：
+```json
+{
+  "name": "办公子网",
+  "ip_pool_start": "192.168.1.100",
+  "ip_pool_end": "192.168.1.200",
+  "subnet_mask": "255.255.255.0",
+  "gateway": "192.168.1.1",
+  "dns_servers": "192.168.1.1",
+  "enabled": true
+}
+```
+
+> 增删改子网后自动递增 DHCP 配置版本并热重载，无需重启。
+
+**对应 ISC DHCP 配置参考**（传统 dnsmasq/dhcpd 写法与本接口的映射）：
+
+```bash
+# ISC dhcpd 写法                    →  本接口子网字段
+subnet 10.122.240.128 netmask 255.255.255.192 {
+  option routers 10.122.240.190;    →  gateway: "10.122.240.190"
+  range 10.122.240.169 10.122.240.187;  →  ip_pool_start/ip_pool_end
+}                                     →  subnet_mask: "255.255.255.192"
+```
 
 ---
 
@@ -557,9 +600,14 @@ TOKEN=$(curl -s -X POST "http://$IP/api/login" \
   -d "{\"username\":\"$USER\",\"password\":\"$PASS\"}" | jq -r '.data.token')
 AUTH="Authorization: $TOKEN"
 
-# 2. 确保 DHCP 配置
+# 2. 确保 DHCP 配置（全局参数 + 子网地址池）
 curl -s -X PUT "http://$IP/api/config/dhcp" -H "$AUTH" -H 'Content-Type: application/json' \
-  -d "{\"enabled\":true,\"pxe_ip\":\"$IP\",\"ip_pool_start\":\"192.168.10.100\",\"ip_pool_end\":\"192.168.10.200\",\"subnet_mask\":\"255.255.255.0\",\"gateway\":\"192.168.10.1\",\"dns_servers\":\"192.168.10.1\",\"boot_file_bios\":\"undionly.kpxe\",\"boot_file_x86\":\"ipxe-x86_64.efi\",\"boot_file_arm\":\"ipxe-aarch64.efi\"}"
+  -d "{\"enabled\":true,\"pxe_ip\":\"$IP\",\"boot_file_bios\":\"undionly.kpxe\",\"boot_file_x86\":\"ipxe-x86_64.efi\",\"boot_file_arm\":\"ipxe-aarch64.efi\"}"
+# 配置子网（幂等：先查再增）
+if ! curl -s "http://$IP/api/config/dhcp/subnets" -H "$AUTH" | jq -e '.data[] | select(.ip_pool_start=="192.168.10.100")' >/dev/null 2>&1; then
+  curl -s -X POST "http://$IP/api/config/dhcp/subnets" -H "$AUTH" -H 'Content-Type: application/json' \
+    -d '{"name":"办公子网","ip_pool_start":"192.168.10.100","ip_pool_end":"192.168.10.200","subnet_mask":"255.255.255.0","gateway":"192.168.10.1","dns_servers":"192.168.10.1","enabled":true}'
+fi
 
 # 3. 录入主机并记录 id
 HOST_JSON=$(curl -s -X POST "http://$IP/api/host" -H "$AUTH" -H 'Content-Type: application/json' \

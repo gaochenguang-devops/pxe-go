@@ -3,6 +3,7 @@ package middleware
 
 import (
 	crand "crypto/rand"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -104,14 +105,38 @@ func CORS() gin.HandlerFunc {
 	}
 }
 
-// RequestLogger 请求日志中间件。
+// newRequestID 生成请求追踪 ID（16 位十六进制，crypto/rand 失败时回退时间戳）。
+func newRequestID() string {
+	b := make([]byte, 8)
+	if _, err := crand.Read(b); err != nil {
+		return fmt.Sprintf("req-%d", time.Now().UnixNano())
+	}
+	return fmt.Sprintf("%x", b)
+}
+
+// RequestID 请求追踪中间件：透传或生成 X-Request-Id，并写入 gin.Context 与响应头。
+// 需在 RequestLogger 之前挂载，业务 handler 通过 logger.FromGin(c) 自动关联 request_id。
+func RequestID() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.GetHeader("X-Request-Id")
+		if id == "" {
+			id = newRequestID()
+		}
+		c.Set(logger.RequestIDKey, id)
+		c.Header("X-Request-Id", id)
+		c.Next()
+	}
+}
+
+// RequestLogger 请求日志中间件（结构化字段：request_id/path/method/client_ip/status/cost_ms）。
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		clientIP := ClientIP(c)
 		c.Next()
-		logger.Info("HTTP %s %s from %s status=%d cost=%v",
-			c.Request.Method, c.Request.URL.Path, clientIP, c.Writer.Status(), time.Since(start))
+		logger.FromGin(c).With(
+			"status", c.Writer.Status(),
+			"cost_ms", time.Since(start).Milliseconds(),
+		).Info("HTTP 请求完成")
 	}
 }
 

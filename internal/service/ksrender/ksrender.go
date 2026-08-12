@@ -8,6 +8,7 @@ import (
 
 	"pxe-server/internal/config"
 	"pxe-server/internal/db"
+	"pxe-server/internal/logger"
 	"pxe-server/internal/model"
 )
 
@@ -34,8 +35,9 @@ func RenderKS(cfg *config.Manager, mac string, tplID int64, imageName string) (s
 	}
 	if tpl == nil {
 		// 兜底取默认模板
-		list, _ := db.ListKSTemplates()
-		if len(list) > 0 {
+		if list, err := db.ListKSTemplates(); err != nil {
+			logger.Warn("兜底查询 KS 模板列表失败: %v", err)
+		} else if len(list) > 0 {
 			tpl = list[0]
 		}
 	}

@@ -131,23 +131,33 @@ type InstallRecord struct {
 
 // ============ 配置结构体 ============
 
+// DHCPSubnet DHCP 单网段配置。
+// 多网段时，服务器根据请求的 giaddr 或来源 IP 匹配对应子网并下发其掩码/网关/DNS。
+type DHCPSubnet struct {
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`         // 网段名称（备注，如 "办公网段"）
+	IPPoolStart string `json:"ip_pool_start"` // 地址池起始
+	IPPoolEnd   string `json:"ip_pool_end"`   // 地址池结束
+	SubnetMask  string `json:"subnet_mask"`   // 子网掩码（用于推导网段）
+	Gateway     string `json:"gateway"`       // 网关
+	DNSServers  string `json:"dns_servers"`   // DNS，逗号分隔
+	Enabled     bool   `json:"enabled"`
+}
+
 // DHCPConfig DHCP 全局配置。
+// 地址池完全由 Subnets（子网列表）定义，不再保留单网段字段。
 type DHCPConfig struct {
-	Enabled      bool   `json:"enabled"`
-	ListenIP     string `json:"listen_ip"`     // 监听 IP（UDP 67）
-	Interface    string `json:"interface"`     // 绑定网卡
-	PXEIP        string `json:"pxe_ip"`        // 服务本机 PXE_IP
-	IPPoolStart  string `json:"ip_pool_start"` // 地址池起始
-	IPPoolEnd    string `json:"ip_pool_end"`   // 地址池结束
-	SubnetMask   string `json:"subnet_mask"`   // 子网掩码
-	Gateway      string `json:"gateway"`       // 网关
-	DNSServers   string `json:"dns_servers"`   // DNS，逗号分隔
-	LeaseTime    int    `json:"lease_time"`    // 租期（秒）
-	BootFileBIOS string `json:"boot_file_bios"` // BIOS 引导文件
-	BootFileX86  string `json:"boot_file_x86"`  // x86_64 UEFI 引导文件
-	BootFileARM  string `json:"boot_file_arm"`  // aarch64 UEFI 引导文件
-	IpxeScript  string `json:"ipxe_script"`   // iPXE 脚本（识别 Option 175 后下发）
-	ConfigVersion int64  `json:"config_version"` // 配置版本，用于热加载检测
+	Enabled       bool         `json:"enabled"`
+	ListenIP      string       `json:"listen_ip"`   // 监听 IP（UDP 67）
+	Interface     string       `json:"interface"`   // 绑定网卡
+	PXEIP         string       `json:"pxe_ip"`      // 服务本机 PXE_IP
+	Subnets       []DHCPSubnet `json:"subnets"`     // 子网列表（地址池全部由此定义）
+	LeaseTime     int          `json:"lease_time"`  // 租期（秒）
+	BootFileBIOS  string       `json:"boot_file_bios"` // BIOS 引导文件
+	BootFileX86   string       `json:"boot_file_x86"`  // x86_64 UEFI 引导文件
+	BootFileARM   string       `json:"boot_file_arm"`  // aarch64 UEFI 引导文件
+	IpxeScript    string       `json:"ipxe_script"`    // iPXE 脚本（识别 Option 175 后下发）
+	ConfigVersion int64        `json:"config_version"` // 配置版本，用于热加载检测
 }
 
 // TFTPConfig TFTP 全局配置。

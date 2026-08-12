@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"pxe-server/internal/db"
+	"pxe-server/internal/logger"
 	"pxe-server/internal/model"
 )
 
@@ -61,7 +62,11 @@ func (s *Server) handleUpdateDeployScript(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效 ID"})
 		return
 	}
-	old, _ := db.GetDeployScript(id)
+	old, err := db.GetDeployScript(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if old != nil && old.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认脚本不允许修改"})
 		return
@@ -88,7 +93,11 @@ func (s *Server) handleDeleteDeployScript(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效 ID"})
 		return
 	}
-	old, _ := db.GetDeployScript(id)
+	old, err := db.GetDeployScript(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if old != nil && old.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认脚本不允许删除"})
 		return
@@ -115,9 +124,13 @@ func (s *Server) handleSetActiveDeployScript(c *gin.Context) {
 		return
 	}
 	// 将生效脚本持久化到 web_root/deploy.sh
-	scr, _ := db.GetDeployScript(id)
-	if scr != nil {
-		_ = writeFileEnsureDir(s.deployPath(), []byte(scr.Content))
+	scr, err := db.GetDeployScript(id)
+	if err != nil {
+		logger.FromGin(c).Warn("设置生效部署脚本后读取脚本失败 id=%d: %v", id, err)
+	} else if scr != nil {
+		if err := writeFileEnsureDir(s.deployPath(), []byte(scr.Content)); err != nil {
+			logger.FromGin(c).Warn("持久化 deploy.sh 失败: %v", err)
+		}
 	}
 	s.writeLog(c, "deploy_active", "设置生效部署脚本")
 	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "已生效并持久化到 deploy.sh"})
@@ -127,23 +140,33 @@ func (s *Server) handleSetActiveDeployScript(c *gin.Context) {
 // 如果没有生效的脚本，自动将默认脚本（或第一个可用脚本）设为生效。
 func (s *Server) ensureDeployScriptActive() {
 	// 检查当前是否有生效的脚本
-	if active, _ := db.GetActiveDeployScript(); active != nil {
+	if active, err := db.GetActiveDeployScript(); err != nil {
+		logger.Warn("检查生效部署脚本失败: %v", err)
+	} else if active != nil {
 		return // 已有生效的，无需处理
 	}
 	// 没有生效的，优先用默认脚本
-	list, _ := db.ListDeployScripts()
+	list, err := db.ListDeployScripts()
+	if err != nil {
+		logger.Warn("查询部署脚本列表失败: %v", err)
+		return
+	}
 	if len(list) == 0 {
 		return
 	}
 	// 优先找默认脚本
 	for _, scr := range list {
 		if scr.IsDefault == 1 {
-			_ = db.SetActiveDeployScript(scr.ID)
+			if err := db.SetActiveDeployScript(scr.ID); err != nil {
+				logger.Warn("自动生效默认部署脚本失败 id=%d: %v", scr.ID, err)
+			}
 			return
 		}
 	}
 	// 没有默认的，用第一个
-	_ = db.SetActiveDeployScript(list[0].ID)
+	if err := db.SetActiveDeployScript(list[0].ID); err != nil {
+		logger.Warn("自动生效部署脚本失败 id=%d: %v", list[0].ID, err)
+	}
 }
 
 // handleGetDeployScriptContent 读取脚本详情（用于编辑预览）。

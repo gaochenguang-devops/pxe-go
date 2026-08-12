@@ -152,7 +152,9 @@ func (s *Server) handleBatchExportNodeInfoExcel(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "生成 Excel 失败: " + err.Error()})
 		return
 	}
-	_ = writeFileEnsureDir(s.nodeInfoPath(), []byte(buildNodeInfoContent(selected)))
+	if err := writeFileEnsureDir(s.nodeInfoPath(), []byte(buildNodeInfoContent(selected))); err != nil {
+		logger.FromGin(c).Warn("重新生成 node-info.txt 失败: %v", err)
+	}
 	s.writeLog(c, "host_batch_export", fmt.Sprintf("批量导出主机资源 Excel %d 条", len(selected)))
 	c.Header("Content-Disposition", "attachment; filename=host-resource.xlsx")
 	c.Data(http.StatusOK, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", buf.Bytes())

@@ -50,7 +50,9 @@ func (s *Server) handleCreateIPxeScript(c *gin.Context) {
 	}
 	// 若当前无任何生效脚本，则自动设为生效并写盘
 	if _, err := db.GetActiveIPxeScript(); err != nil {
-		_ = s.activateIPxeScript(id)
+		if err := s.activateIPxeScript(id); err != nil {
+			logger.FromGin(c).Warn("自动激活 iPXE 脚本失败 id=%d: %v", id, err)
+		}
 	}
 	s.writeLog(c, "ipxe_create", "新增 iPXE 脚本: "+req.Name)
 	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "创建成功", "id": id})
@@ -63,7 +65,11 @@ func (s *Server) handleUpdateIPxeScript(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效 ID"})
 		return
 	}
-	old, _ := db.GetIPxeScript(id)
+	old, err := db.GetIPxeScript(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if old != nil && old.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认脚本不允许修改"})
 		return
@@ -96,7 +102,11 @@ func (s *Server) handleDeleteIPxeScript(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效 ID"})
 		return
 	}
-	scr, _ := db.GetIPxeScript(id)
+	scr, err := db.GetIPxeScript(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if scr != nil && scr.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认脚本不允许删除"})
 		return
@@ -128,20 +138,30 @@ func (s *Server) handleSetActiveIPxeScript(c *gin.Context) {
 
 // ensureIPxeScriptActive 确保至少有一个 iPXE 脚本处于生效状态。
 func (s *Server) ensureIPxeScriptActive() {
-	if active, _ := db.GetActiveIPxeScript(); active != nil {
+	if active, err := db.GetActiveIPxeScript(); err != nil {
+		logger.Warn("检查生效 iPXE 脚本失败: %v", err)
+	} else if active != nil {
 		return
 	}
-	list, _ := db.ListIPxeScripts()
+	list, err := db.ListIPxeScripts()
+	if err != nil {
+		logger.Warn("查询 iPXE 脚本列表失败: %v", err)
+		return
+	}
 	if len(list) == 0 {
 		return
 	}
 	for _, scr := range list {
 		if scr.IsDefault == 1 {
-			_ = s.activateIPxeScript(scr.ID)
+			if err := s.activateIPxeScript(scr.ID); err != nil {
+				logger.Warn("自动激活默认 iPXE 脚本失败 id=%d: %v", scr.ID, err)
+			}
 			return
 		}
 	}
-	_ = s.activateIPxeScript(list[0].ID)
+	if err := s.activateIPxeScript(list[0].ID); err != nil {
+		logger.Warn("自动激活 iPXE 脚本失败 id=%d: %v", list[0].ID, err)
+	}
 }
 
 // activateIPxeScript 将脚本设为生效并写盘 autoexec.ipxe。

@@ -77,7 +77,10 @@ func (s *Server) startConn(tc model.TFTPConfig) error {
 		return err
 	}
 	s.conn = conn
-	go s.tftpSrv.Serve(conn)
+	go func() {
+		defer logger.Recover("tftp-serve")
+		s.tftpSrv.Serve(conn)
+	}()
 	return nil
 }
 

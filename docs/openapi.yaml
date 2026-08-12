@@ -134,7 +134,7 @@ paths:
   /api/config/dhcp:
     put:
       tags: [配置]
-      summary: 更新 DHCP 配置（热重载）
+      summary: 更新 DHCP 全局配置（地址池由子网接口管理）
       requestBody:
         content:
           application/json:
@@ -142,14 +142,11 @@ paths:
               type: object
               properties:
                 enabled: { type: boolean }
-                listen_ip: { type: string }
+                listen_ip:
+                  type: string
+                  description: 监听 IP。同网段直连（无中继）时用此 IP 识别客户端所属子网，建议填服务器在该网段的实际接口 IP（0.0.0.0 时自动枚举本机所有网卡 IP）
                 interface: { type: string }
                 pxe_ip: { type: string, example: "192.168.10.10" }
-                ip_pool_start: { type: string, example: "192.168.10.100" }
-                ip_pool_end: { type: string, example: "192.168.10.200" }
-                subnet_mask: { type: string, example: "255.255.255.0" }
-                gateway: { type: string }
-                dns_servers: { type: string }
                 lease_time: { type: integer }
                 boot_file_bios: { type: string, example: undionly.kpxe }
                 boot_file_x86: { type: string, example: ipxe-x86_64.efi }
@@ -191,6 +188,66 @@ paths:
                 web_root: { type: string }
                 admin_user: { type: string }
                 admin_password: { type: string }
+      responses:
+        "200":
+          description: 成功
+
+  # ---------- DHCP 多网段 ----------
+  /api/config/dhcp/subnets:
+    get:
+      tags: [配置]
+      summary: DHCP 子网列表
+      responses:
+        "200":
+          description: 成功
+    post:
+      tags: [配置]
+      summary: 新增 DHCP 子网
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ip_pool_start, ip_pool_end, subnet_mask]
+              properties:
+                name: { type: string, example: 办公网段 }
+                ip_pool_start: { type: string, example: "192.168.1.100" }
+                ip_pool_end: { type: string, example: "192.168.1.200" }
+                subnet_mask: { type: string, example: "255.255.255.0" }
+                gateway: { type: string, example: "192.168.1.1" }
+                dns_servers: { type: string, example: "192.168.1.1" }
+                enabled: { type: boolean, default: true }
+      responses:
+        "200":
+          description: 成功
+  /api/config/dhcp/subnets/{id}:
+    put:
+      tags: [配置]
+      summary: 更新 DHCP 子网
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                ip_pool_start: { type: string }
+                ip_pool_end: { type: string }
+                subnet_mask: { type: string }
+                gateway: { type: string }
+                dns_servers: { type: string }
+                enabled: { type: boolean }
+      responses:
+        "200":
+          description: 成功
+    delete:
+      tags: [配置]
+      summary: 删除 DHCP 子网
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
       responses:
         "200":
           description: 成功

@@ -43,7 +43,11 @@ func (s *Server) handleCreateKSTemplate(c *gin.Context) {
 	if !s.parseJSONBody(c, &req) {
 		return
 	}
-	logger.Info("创建 KS 模板: name=%s root_password=%q", req.Name, req.RootPassword)
+	// 仅记录模板名与"是否设置密码"布尔值，禁止明文记录密码
+	logger.FromGin(c).With(
+		"name", req.Name,
+		"has_root_password", req.RootPassword != "",
+	).Info("创建 KS 模板")
 	if req.Name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "模板名称不能为空"})
 		return
@@ -52,7 +56,9 @@ func (s *Server) handleCreateKSTemplate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "Root 密码不能为空"})
 		return
 	}
-	if existing, _ := db.GetKSTemplateByName(req.Name); existing != nil {
+	if existing, err := db.GetKSTemplateByName(req.Name); err != nil {
+		logger.FromGin(c).Warn("检查 KS 模板重名失败: %v", err)
+	} else if existing != nil {
 		c.JSON(http.StatusConflict, gin.H{"code": 409, "msg": "模板名称已存在"})
 		return
 	}
@@ -64,7 +70,9 @@ func (s *Server) handleCreateKSTemplate(c *gin.Context) {
 	}
 	// 若当前无任何生效模板，自动将该模板设为生效并写盘
 	if _, err := db.GetActiveKSTemplate(); err != nil {
-		_ = s.activateKSTemplate(id)
+		if err := s.activateKSTemplate(id); err != nil {
+			logger.FromGin(c).Warn("自动激活 KS 模板失败 id=%d: %v", id, err)
+		}
 	}
 	s.writeLog(c, "ks_create", "新增 KS 模板: "+req.Name)
 	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": "创建成功", "id": id})
@@ -77,7 +85,11 @@ func (s *Server) handleUpdateKSTemplate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效ID"})
 		return
 	}
-	old, _ := db.GetKSTemplate(id)
+	old, err := db.GetKSTemplate(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if old != nil && old.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认模板不允许修改"})
 		return
@@ -86,7 +98,9 @@ func (s *Server) handleUpdateKSTemplate(c *gin.Context) {
 	if !s.parseJSONBody(c, &req) {
 		return
 	}
-	if existing, _ := db.GetKSTemplateByName(req.Name); existing != nil && existing.ID != id {
+	if existing, err := db.GetKSTemplateByName(req.Name); err != nil {
+		logger.FromGin(c).Warn("检查 KS 模板重名失败: %v", err)
+	} else if existing != nil && existing.ID != id {
 		c.JSON(http.StatusConflict, gin.H{"code": 409, "msg": "模板名称已存在"})
 		return
 	}
@@ -126,21 +140,31 @@ func (s *Server) handleSetActiveKSTemplate(c *gin.Context) {
 
 // ensureKSTemplateActive 确保至少有一个 KS 模板处于生效状态。
 func (s *Server) ensureKSTemplateActive() {
-	if active, _ := db.GetActiveKSTemplate(); active != nil {
+	if active, err := db.GetActiveKSTemplate(); err != nil {
+		logger.Warn("检查生效 KS 模板失败: %v", err)
+	} else if active != nil {
 		return
 	}
-	list, _ := db.ListKSTemplates()
+	list, err := db.ListKSTemplates()
+	if err != nil {
+		logger.Warn("查询 KS 模板列表失败: %v", err)
+		return
+	}
 	if len(list) == 0 {
 		return
 	}
 	// 优先默认模板，否则第一个
 	for _, t := range list {
 		if t.IsDefault == 1 {
-			_ = s.activateKSTemplate(t.ID)
+			if err := s.activateKSTemplate(t.ID); err != nil {
+				logger.Warn("自动激活默认 KS 模板失败 id=%d: %v", t.ID, err)
+			}
 			return
 		}
 	}
-	_ = s.activateKSTemplate(list[0].ID)
+	if err := s.activateKSTemplate(list[0].ID); err != nil {
+		logger.Warn("自动激活 KS 模板失败 id=%d: %v", list[0].ID, err)
+	}
 }
 
 // handleDeleteKSTemplate 删除 KS 模板。
@@ -150,7 +174,11 @@ func (s *Server) handleDeleteKSTemplate(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "无效ID"})
 		return
 	}
-	old, _ := db.GetKSTemplate(id)
+	old, err := db.GetKSTemplate(id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
+		return
+	}
 	if old != nil && old.IsDefault == 1 {
 		c.JSON(http.StatusForbidden, gin.H{"code": 403, "msg": "默认模板不允许删除"})
 		return

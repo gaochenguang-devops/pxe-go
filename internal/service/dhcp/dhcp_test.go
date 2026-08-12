@@ -134,42 +134,42 @@ func TestClientArch(t *testing.T) {
 }
 
 func TestAllocateAndPoolContains(t *testing.T) {
+	pool := &IPPool{
+		start: net.IPv4(192, 168, 1, 100).To4(),
+		end:   net.IPv4(192, 168, 1, 102).To4(),
+		lease: 3600,
+	}
 	s := &Server{
-		ipPool: &IPPool{
-			start: net.IPv4(192, 168, 1, 100).To4(),
-			end:   net.IPv4(192, 168, 1, 102).To4(),
-			lease: 3600,
-		},
 		leases: make(map[string]*lease),
 	}
 
 	// 池内地址应命中
-	if !s.poolContains(net.IPv4(192, 168, 1, 100)) {
+	if !s.poolContains(net.IPv4(192, 168, 1, 100), pool) {
 		t.Error("pool start should be contained")
 	}
-	if !s.poolContains(net.IPv4(192, 168, 1, 102)) {
+	if !s.poolContains(net.IPv4(192, 168, 1, 102), pool) {
 		t.Error("pool end should be contained")
 	}
-	if s.poolContains(net.IPv4(192, 168, 1, 103)) {
+	if s.poolContains(net.IPv4(192, 168, 1, 103), pool) {
 		t.Error("out-of-range should not be contained")
 	}
-	if s.poolContains(net.IPv4(192, 168, 1, 99)) {
+	if s.poolContains(net.IPv4(192, 168, 1, 99), pool) {
 		t.Error("below start should not be contained")
 	}
 
 	// 分配第一个 IP
-	ip1 := s.allocate("aa:bb:cc:dd:ee:01")
+	ip1 := s.allocate("aa:bb:cc:dd:ee:01", pool)
 	if !ip1.Equal(net.IPv4(192, 168, 1, 100)) {
 		t.Errorf("first alloc = %v, want 192.168.1.100", ip1)
 	}
 	// 记录租约后，同一 MAC 复用同一 IP
-	s.recordLease("aa:bb:cc:dd:ee:01", ip1, "h1")
-	ipAgain := s.allocate("aa:bb:cc:dd:ee:01")
+	s.recordLease("aa:bb:cc:dd:ee:01", ip1, "h1", pool)
+	ipAgain := s.allocate("aa:bb:cc:dd:ee:01", pool)
 	if !ipAgain.Equal(ip1) {
 		t.Errorf("same MAC should reuse IP, got %v", ipAgain)
 	}
 	// 不同 MAC 分配到下一个 IP
-	ip2 := s.allocate("aa:bb:cc:dd:ee:02")
+	ip2 := s.allocate("aa:bb:cc:dd:ee:02", pool)
 	if !ip2.Equal(net.IPv4(192, 168, 1, 101)) {
 		t.Errorf("second alloc = %v, want 192.168.1.101", ip2)
 	}
@@ -177,4 +177,96 @@ func TestAllocateAndPoolContains(t *testing.T) {
 
 func ip(n byte) net.IP {
 	return net.IPv4(0, 0, 0, n).To4()
+}
+
+func TestMatchSubnetByPeerIP(t *testing.T) {
+	// 子网池：10.1.0.0/16、192.168.2.0/24 与停用的 192.168.9.0/24
+	s := &Server{
+		subnets: []*IPPool{
+			{network: net.IPv4(10, 1, 0, 0).To4(), prefix: 16, enabled: true},
+			{network: net.IPv4(192, 168, 2, 0).To4(), prefix: 24, enabled: true},
+			{network: net.IPv4(192, 168, 9, 0).To4(), prefix: 24, enabled: false}, // 停用不匹配
+		},
+	}
+
+	m, _ := dhcpv4.New()
+	dc := model.DHCPConfig{}
+	// 来源 IP 落入第一子网（giaddr 为零值，用来源 IP）
+	peer := &net.UDPAddr{IP: net.IPv4(10, 1, 5, 5).To4()}
+	if got := s.matchSubnet(m, peer, dc); got != s.subnets[0] {
+		t.Error("peer in 10.1.0.0/16 should match subnet[0]")
+	}
+	// 来源 IP 落入第二子网
+	peer2 := &net.UDPAddr{IP: net.IPv4(192, 168, 2, 10).To4()}
+	if got := s.matchSubnet(m, peer2, dc); got != s.subnets[1] {
+		t.Error("peer in 192.168.2.0/24 should match subnet[1]")
+	}
+	// 来源 IP 落入停用子网 → 不匹配（nil）
+	peer3 := &net.UDPAddr{IP: net.IPv4(192, 168, 9, 10).To4()}
+	if got := s.matchSubnet(m, peer3, dc); got != nil {
+		t.Error("disabled subnet should not match")
+	}
+	// 来源 IP 不匹配任何子网 → nil
+	peer4 := &net.UDPAddr{IP: net.IPv4(8, 8, 8, 8).To4()}
+	if got := s.matchSubnet(m, peer4, dc); got != nil {
+		t.Error("unmatched peer should be nil")
+	}
+}
+
+func TestMatchSubnetByGiaddr(t *testing.T) {
+	s := &Server{
+		subnets: []*IPPool{
+			{network: net.IPv4(10, 2, 0, 0).To4(), prefix: 16, enabled: true},
+			{network: net.IPv4(10, 3, 0, 0).To4(), prefix: 16, enabled: true},
+		},
+	}
+	// giaddr 优先级高于来源 IP
+	m, _ := dhcpv4.New()
+	m.GatewayIPAddr = net.IPv4(10, 3, 0, 1).To4()
+	peer := &net.UDPAddr{IP: net.IPv4(10, 2, 0, 1).To4()}
+	if got := s.matchSubnet(m, peer, model.DHCPConfig{}); got != s.subnets[1] {
+		t.Error("giaddr should take priority over peer IP")
+	}
+}
+
+// TestMatchSubnet_SameSegmentDirect 同网段直连（无中继、广播、源 0.0.0.0）：
+// 靠服务器监听 IP（ListenIP）匹配子网。
+func TestMatchSubnet_SameSegmentDirect(t *testing.T) {
+	s := &Server{
+		subnets: []*IPPool{
+			{network: net.IPv4(10, 122, 240, 0).To4(), prefix: 26, enabled: true},
+			{network: net.IPv4(10, 122, 240, 128).To4(), prefix: 26, enabled: true},
+		},
+	}
+	m, _ := dhcpv4.New()
+	// giaddr 为空、peer 为广播(0.0.0.0)，仅靠 ListenIP 识别
+	dc := model.DHCPConfig{ListenIP: "10.122.240.62"}
+	peer := &net.UDPAddr{IP: net.IPv4zero.To4()}
+	if got := s.matchSubnet(m, peer, dc); got != s.subnets[0] {
+		t.Error("same-segment direct should match by ListenIP")
+	}
+	// 监听 IP 属于第二子网
+	dc2 := model.DHCPConfig{ListenIP: "10.122.240.190"}
+	if got := s.matchSubnet(m, peer, dc2); got != s.subnets[1] {
+		t.Error("same-segment direct should match second subnet by ListenIP")
+	}
+	// 监听 IP 无匹配 → nil
+	dc3 := model.DHCPConfig{ListenIP: "192.168.99.1"}
+	if got := s.matchSubnet(m, peer, dc3); got != nil {
+		t.Error("unmatched ListenIP should be nil")
+	}
+}
+
+func TestNetworkOf(t *testing.T) {
+	netIP, prefix := networkOf("192.168.1.100", "255.255.255.0")
+	if prefix != 24 {
+		t.Errorf("prefix = %d, want 24", prefix)
+	}
+	if !netIP.Equal(net.IPv4(192, 168, 1, 0).To4()) {
+		t.Errorf("network = %v, want 192.168.1.0", netIP)
+	}
+	// 非法输入
+	if n, p := networkOf("bad", "255.255.255.0"); n != nil || p != -1 {
+		t.Error("invalid input should return nil,-1")
+	}
 }

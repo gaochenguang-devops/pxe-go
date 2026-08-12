@@ -1,8 +1,8 @@
 let imageList=[],ksList=[],resList=[];
 let token = localStorage.getItem('pxe_token') || '';
 let currentPage = 'dashboard';
-const pages = ['dashboard','images','config','scripts','hosts','hostres','files','logs'];
-const titles = {dashboard:'仪表盘',images:'系统镜像',config:'服务配置',scripts:'引导脚本',hosts:'主机管理',hostres:'主机资源',files:'文件管理',logs:'操作日志'};
+const pages = ['dashboard','images','config','scripts','hosts','hostres','install-records','files','logs'];
+const titles = {dashboard:'仪表盘',images:'系统镜像',config:'服务配置',scripts:'引导脚本',hosts:'主机管理',hostres:'主机资源','install-records':'装机记录',files:'文件管理',logs:'操作日志'};
 
 // ---------- 基础工具 ----------
 function showToast(msg, type='success'){
@@ -155,6 +155,8 @@ function downloadAuthed(url, filename){
 function val(id,v){document.getElementById(id).value=v??'';}
 function gv(id){return document.getElementById(id).value.trim();}
 function setSel(id,v){const el=document.getElementById(id);el.value=v==='true'?'true':'false';}
+function setChk(id,v){const el=document.getElementById(id);if(el)el.checked=(v==='true'||v===true||v==='1');}
+function setStatusText(id,v){const el=document.getElementById(id);if(!el)return;const on=(v==='true'||v===true||v==='1');el.textContent=on?'已启用':'已停止';el.classList.toggle('on',on);el.classList.toggle('off',!on);}
 function closeModal(id){document.getElementById(id).style.display='none';}
 
 // 加载保存的登录凭据

@@ -210,6 +210,70 @@ func TestKSTemplateCRUD(t *testing.T) {
 	}
 }
 
+func TestDHCPSubnetCRUD(t *testing.T) {
+	setupTestDB(t)
+	// 清空迁移自动创建的默认子网，独立测试 CRUD
+	if _, err := DB.Exec(`DELETE FROM dhcp_subnet`); err != nil {
+		t.Fatalf("clear subnets: %v", err)
+	}
+
+	// 新增
+	sub := &model.DHCPSubnet{
+		Name:        "办公子网",
+		IPPoolStart: "192.168.1.100",
+		IPPoolEnd:   "192.168.1.200",
+		SubnetMask:  "255.255.255.0",
+		Gateway:     "192.168.1.1",
+		DNSServers:  "192.168.1.1",
+		Enabled:     true,
+	}
+	id, err := CreateDHCPSubnet(sub)
+	if err != nil {
+		t.Fatalf("CreateDHCPSubnet err: %v", err)
+	}
+	if id <= 0 {
+		t.Fatal("invalid subnet id")
+	}
+
+	// 查询列表
+	list, err := ListDHCPSubnets()
+	if err != nil {
+		t.Fatalf("ListDHCPSubnets err: %v", err)
+	}
+	if len(list) != 1 || list[0].Name != "办公子网" || !list[0].Enabled {
+		t.Errorf("unexpected list: %+v", list)
+	}
+
+	// 按 ID 查询
+	got, err := GetDHCPSubnet(id)
+	if err != nil {
+		t.Fatalf("GetDHCPSubnet err: %v", err)
+	}
+	if got.IPPoolStart != "192.168.1.100" {
+		t.Errorf("got pool start = %q", got.IPPoolStart)
+	}
+
+	// 更新
+	got.Name = "研发子网"
+	got.Enabled = false
+	if err := UpdateDHCPSubnet(id, got); err != nil {
+		t.Fatalf("UpdateDHCPSubnet err: %v", err)
+	}
+	got2, _ := GetDHCPSubnet(id)
+	if got2.Name != "研发子网" || got2.Enabled {
+		t.Error("update did not persist")
+	}
+
+	// 删除
+	if err := DeleteDHCPSubnet(id); err != nil {
+		t.Fatalf("DeleteDHCPSubnet err: %v", err)
+	}
+	list, _ = ListDHCPSubnets()
+	if len(list) != 0 {
+		t.Error("subnet should be deleted")
+	}
+}
+
 func TestIPxeScriptCRUD(t *testing.T) {
 	setupTestDB(t)
 
@@ -254,5 +318,66 @@ func TestIPxeScriptCRUD(t *testing.T) {
 	list, _ := ListIPxeScripts()
 	if len(list) != 1 {
 		t.Errorf("ipxe script list len = %d, want 1", len(list))
+	}
+}
+
+// TestMigrateDHCPSubnet 验证旧单网段配置自动迁移为子网记录。
+func TestMigrateDHCPSubnet(t *testing.T) {
+	setupTestDB(t)
+	// 清空已迁移的子网与旧配置键，模拟旧数据库状态
+	if _, err := DB.Exec(`DELETE FROM dhcp_subnet`); err != nil {
+		t.Fatalf("clear subnets: %v", err)
+	}
+	for _, k := range []string{"dhcp_ip_pool_start", "dhcp_ip_pool_end", "dhcp_subnet_mask", "dhcp_gateway", "dhcp_dns_servers"} {
+		_, _ = DB.Exec(`DELETE FROM sys_config WHERE config_key=?`, k)
+	}
+
+	// 写入旧的单网段配置键
+	if err := SetConfig("dhcp_ip_pool_start", "10.0.0.100"); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetConfig("dhcp_ip_pool_end", "10.0.0.200"); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetConfig("dhcp_subnet_mask", "255.255.255.0"); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetConfig("dhcp_gateway", "10.0.0.1"); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetConfig("dhcp_dns_servers", "10.0.0.1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := migrateDHCPSubnet(); err != nil {
+		t.Fatalf("migrateDHCPSubnet err: %v", err)
+	}
+
+	// 应生成一条子网，值来自旧配置键
+	list, err := ListDHCPSubnets()
+	if err != nil {
+		t.Fatalf("ListDHCPSubnets err: %v", err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("expected 1 subnet after migrate, got %d", len(list))
+	}
+	if list[0].IPPoolStart != "10.0.0.100" || list[0].Gateway != "10.0.0.1" {
+		t.Errorf("migrated subnet wrong: %+v", list[0])
+	}
+
+	// 旧配置键应被清理
+	for _, k := range []string{"dhcp_ip_pool_start", "dhcp_ip_pool_end", "dhcp_subnet_mask", "dhcp_gateway", "dhcp_dns_servers"} {
+		if v, _ := GetConfig(k); v != "" {
+			t.Errorf("old config key %q should be removed, got %q", k, v)
+		}
+	}
+
+	// 幂等：再次迁移不再新增
+	if err := migrateDHCPSubnet(); err != nil {
+		t.Fatalf("second migrate err: %v", err)
+	}
+	list, _ = ListDHCPSubnets()
+	if len(list) != 1 {
+		t.Errorf("second migrate should not duplicate, got %d", len(list))
 	}
 }

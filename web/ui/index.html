@@ -10,22 +10,36 @@
 
 <!-- 登录页 -->
 <div id="loginPage">
+  <div class="login-orb login-orb-a"></div>
+  <div class="login-orb login-orb-b"></div>
+  <div class="login-grid"></div>
   <div class="login-box">
-    <h1>PXE 装机管理系统</h1>
-    <p>Go 一体化 PXE 装机服务平台</p>
-    <label>用户名</label>
-    <input id="loginUser" placeholder="admin">
-    <label>密码</label>
-    <input id="loginPass" type="password" >
-    <label class="remember-label"><input type="checkbox" id="rememberPwd"> 记住密码</label>
-    <button class="btn btn-block" onclick="login()">登 录</button>
+    <div class="login-brand">
+      <div class="login-logo"><span>P</span><span>X</span><span>E</span></div>
+      <div>
+        <h1>PXE 装机管理系统</h1>
+        <p>Go 一体化 PXE 装机服务平台</p>
+      </div>
+    </div>
+    <div class="login-fields">
+      <label class="f-label">用户名 <em>username</em></label>
+      <input id="loginUser" class="f-input mono" placeholder="admin">
+      <label class="f-label">密码 <em>password</em></label>
+      <input id="loginPass" type="password" class="f-input mono">
+      <label class="remember-label"><input type="checkbox" id="rememberPwd"> 记住密码</label>
+      <button class="btn btn-save btn-block" onclick="login()">登 录</button>
+    </div>
+    <div class="login-foot">PXE-GO CONSOLE · 安全接入</div>
   </div>
 </div>
 
 <!-- 主应用 -->
 <div id="app">
   <aside class="sidebar">
-    <div class="logo"><h2>PXE 装机</h2><small>管理控制台</small></div>
+    <div class="logo">
+      <div class="logo-badge"><span>P</span><span>X</span><span>E</span></div>
+      <div class="logo-text"><h2>PXE 装机</h2><small>管理控制台</small></div>
+    </div>
     <nav>
       <a href="#" data-page="dashboard" class="active"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4v9zm0 7h6v-5H4v5zm10 0h6v-9h-6v9zm0-16v5h6V4h-6z"/></svg>仪表盘</a>
       <a href="#" data-page="images"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>系统镜像</a>
@@ -33,18 +47,21 @@
       <a href="#" data-page="scripts"><svg viewBox="0 0 24 24"><path d="M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>引导脚本</a>
       <a href="#" data-page="hosts"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>主机管理</a>
       <a href="#" data-page="hostres"><svg viewBox="0 0 24 24"><path d="M3.01 21h18v-2h-18v2zm2-6h14v-2H5v2zm14-6h-2V5h-2v4H9V5H7v4H5v2h14V9z"/></svg>主机资源</a>
+      <a href="#" data-page="install-records"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>装机记录</a>
       <a href="#" data-page="files"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/></svg>文件管理</a>
       <a href="#" data-page="logs"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>操作日志</a>
-      <a href="#" data-page="install-records"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>装机记录</a>
     </nav>
-
+    <div class="sidebar-foot"><span class="side-dot"></span>PXE-GO CONSOLE</div>
   </aside>
 
   <div class="main">
     <div class="topbar">
-      <h1 id="pageTitle">仪表盘</h1>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span id="clock" style="color:var(--muted)"></span>
+      <div class="topbar-title">
+        <span class="topbar-kicker">PXE 管理控制台</span>
+        <h1 id="pageTitle">仪表盘</h1>
+      </div>
+      <div class="topbar-right">
+        <span id="clock" class="topbar-clock"></span>
         <div class="user-menu">
           <button class="btn-user" id="userBtn" onclick="toggleUserMenu()">
             <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -69,144 +86,297 @@
     <div class="page active" id="page-dashboard">
       <div class="stat-grid" id="quickStats"></div>
       <div class="card">
-        <h3>服务状态</h3>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#22c55e,#10b981)"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+          <div><h3>服务状态</h3><p class="card-head-sub">SERVICE HEALTH</p></div>
+        </div>
         <div class="svc-grid" id="serviceStatus"></div>
       </div>
       <div class="card">
-        <h3>配置概览</h3>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span>
+          <div><h3>配置概览</h3><p class="card-head-sub">SERVER PROFILE</p></div>
+        </div>
         <div class="grid" id="configOverview"></div>
       </div>
       <div class="card">
-        <h3>最近操作</h3>
-        <table>
-          <thead><tr><th>操作人</th><th>类型</th><th>详情</th><th>客户端 IP</th><th>时间</th></tr></thead>
-          <tbody id="dashLogTbody"></tbody>
-        </table>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#3b82f6,#22d3ee)"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+          <div><h3>最近操作</h3><p class="card-head-sub">RECENT ACTIVITY</p></div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>操作人</th><th>类型</th><th>详情</th><th>客户端 IP</th><th>时间</th></tr></thead>
+            <tbody id="dashLogTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- 配置 -->
     <div class="page" id="page-config">
       <!-- Tab 导航 -->
-      <div class="cfg-tabs">
-        <button class="cfg-tab active" data-tab="dhcp" onclick="switchCfgTab('dhcp')">
-          <span class="cfg-tab-icon" style="background:linear-gradient(135deg,#3b82f6,#22d3ee)">DHCP</span>
-          DHCP 配置
-        </button>
-        <button class="cfg-tab" data-tab="tftp" onclick="switchCfgTab('tftp')">
-          <span class="cfg-tab-icon" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">TFTP</span>
-          TFTP 配置
-        </button>
-        <button class="cfg-tab" data-tab="http" onclick="switchCfgTab('http')">
-          <span class="cfg-tab-icon" style="background:linear-gradient(135deg,#22c55e,#10b981)">HTTP</span>
-          HTTP 配置
-        </button>
+      <div class="tab-bar">
+        <button class="active" data-tab="dhcp" onclick="switchCfgTab('dhcp')">DHCP 配置</button>
+        <button data-tab="tftp" onclick="switchCfgTab('tftp')">TFTP 配置</button>
+        <button data-tab="http" onclick="switchCfgTab('http')">HTTP 配置</button>
       </div>
 
       <!-- DHCP Tab -->
       <div class="cfg-panel active" id="cfg-panel-dhcp">
-        <div class="cfg-section">
-          <div class="cfg-section-title">基础与地址池</div>
-          <div class="grid">
-            <div class="field"><span>启用</span><select id="dhcpEnabled"><option value="true">是</option><option value="false">否</option></select></div>
-            <div class="field"><span>监听 IP</span><input id="dhcpListenIp"></div>
-            <div class="field"><span>绑定网卡</span><input id="dhcpInterface" placeholder="eth0"></div>
-            <div class="field"><span>PXE 服务 IP</span><input id="dhcpPxeIp"></div>
-            <div class="field"><span>地址池起始</span><input id="dhcpPoolStart"></div>
-            <div class="field"><span>地址池结束</span><input id="dhcpPoolEnd"></div>
-            <div class="field"><span>子网掩码</span><input id="dhcpMask"></div>
-            <div class="field"><span>网关</span><input id="dhcpGateway"></div>
-            <div class="field"><span>DNS（逗号分隔）</span><input id="dhcpDns"></div>
-            <div class="field"><span>租期（秒）</span><input id="dhcpLease"></div>
+        <!-- 服务总览 -->
+        <div class="cfg-hero">
+          <div class="cfg-hero-brand">
+            <div class="cfg-hero-logo"><span>D</span><span>H</span><span>C</span><span>P</span></div>
+            <div class="cfg-hero-meta">
+              <div class="cfg-hero-title">DHCP 服务</div>
+              <div class="cfg-hero-tags">
+                <span class="cfg-tag">UDP :67</span>
+                <span class="cfg-tag" id="dhcpSubnetTag">子网动态</span>
+              </div>
+            </div>
+          </div>
+          <div class="cfg-hero-status">
+            <span class="cfg-status-label">运行状态</span>
+            <div class="cfg-status-switch">
+              <label class="switch">
+                <input type="checkbox" id="dhcpEnabledSw">
+                <span class="switch-slider"></span>
+              </label>
+              <span class="cfg-status-text" id="dhcpStatusText">已停止</span>
+            </div>
           </div>
         </div>
-        <div class="cfg-section">
-          <div class="cfg-section-title">引导文件</div>
+
+        <!-- 网络参数 -->
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">01</span>网络参数</div>
+            <div class="cfg-card-sub">服务器监听与下发地址</div>
+          </div>
           <div class="grid">
-            <div class="field"><span>BIOS 引导文件</span><input id="dhcpBios"></div>
-            <div class="field"><span>x86_64 UEFI 引导文件</span><input id="dhcpX86"></div>
-            <div class="field"><span>aarch64 UEFI 引导文件</span><input id="dhcpArm"></div>
-            <div class="field"><span>iPXE 脚本</span><input id="dhcpIpxe"></div>
+            <div class="field"><label class="f-label">监听 IP <em>bind-address</em></label><input class="f-input mono" id="dhcpListenIp" placeholder="0.0.0.0"></div>
+            <div class="field"><label class="f-label">绑定网卡 <em>interface</em></label><input class="f-input mono" id="dhcpInterface" placeholder="eth0"></div>
+            <div class="field"><label class="f-label">PXE 服务 IP <em>next-server</em></label><input class="f-input mono" id="dhcpPxeIp"></div>
+            <div class="field"><label class="f-label">租期 <em>lease-time</em></label><input class="f-input mono" id="dhcpLease" placeholder="86400"></div>
           </div>
         </div>
-        <div class="cfg-save-bar"><button class="btn" onclick="saveDhcp()">保存 DHCP 配置</button></div>
+
+        <!-- 引导文件 -->
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">02</span>引导文件</div>
+            <div class="cfg-card-sub">各架构下发的引导文件名</div>
+          </div>
+          <div class="grid">
+            <div class="field"><label class="f-label">BIOS <em>undionly</em></label><input class="f-input mono" id="dhcpBios"></div>
+            <div class="field"><label class="f-label">x86_64 UEFI</label><input class="f-input mono" id="dhcpX86"></div>
+            <div class="field"><label class="f-label">aarch64 UEFI</label><input class="f-input mono" id="dhcpArm"></div>
+            <div class="field"><label class="f-label">iPXE 脚本</label><input class="f-input mono" id="dhcpIpxe"></div>
+          </div>
+        </div>
+
+        <!-- 子网管理 -->
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">03</span>子网地址池</div>
+            <div class="cfg-card-sub">按来源 IP / giaddr 自动匹配</div>
+            <button class="btn btn-sm btn-add" style="margin-left:auto" onclick="openSubnetModal()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>新增子网</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="subnetTable">
+              <thead><tr>
+                <th>名称</th><th>地址池</th><th>掩码</th><th>网关</th><th>DNS</th><th>状态</th><th style="width:130px">操作</th>
+              </tr></thead>
+              <tbody><tr><td colspan="7" class="empty">加载中...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cfg-save-bar"><button class="btn btn-save" onclick="saveDhcp()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>保存 DHCP 配置</button></div>
+        <!-- DHCP 子网弹窗 -->
+        <div class="modal-bg" id="subnetModal" style="display:none">
+          <div class="modal">
+            <h3>新增子网</h3>
+            <div class="grid">
+              <div class="field"><label class="f-label">子网名称</label><input class="f-input" id="subnetName" placeholder="如：办公子网"></div>
+              <div class="field"><label class="f-label">地址池起始</label><input class="f-input mono" id="subnetStart" placeholder="192.168.1.100"></div>
+              <div class="field"><label class="f-label">地址池结束</label><input class="f-input mono" id="subnetEnd" placeholder="192.168.1.200"></div>
+              <div class="field"><label class="f-label">子网掩码</label><input class="f-input mono" id="subnetMask" placeholder="255.255.255.0"></div>
+              <div class="field"><label class="f-label">网关</label><input class="f-input mono" id="subnetGateway" placeholder="192.168.1.1"></div>
+              <div class="field"><label class="f-label">DNS</label><input class="f-input mono" id="subnetDns" placeholder="192.168.1.1"></div>
+              <div class="field"><label class="f-label">启用</label><select id="subnetEnabled"><option value="true">是</option><option value="false">否</option></select></div>
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-ghost" onclick="closeSubnetModal()">取消</button>
+              <button class="btn btn-save" onclick="submitSubnet()">保存</button>
+            </div>
+          </div>
+        </div>
         <!-- DHCP 日志 -->
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>DHCP 操作日志</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('dhcp')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">04</span>操作日志</div>
+            <div class="cfg-card-sub">后台管理操作审计</div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('dhcp')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgLogDhcp"><div class="empty">暂无日志</div></div>
+          <div class="log-table-wrap">
+            <table class="log-table" id="cfgLogDhcp"><tbody><tr><td class="empty">加载中...</td></tr></tbody></table>
+          </div>
         </div>
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>服务端文件日志（DHCP / 请求日志）</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadFileLog('dhcp')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">05</span>服务端日志</div>
+            <div class="cfg-card-sub">DHCP / 请求日志（终端实时）</div>
+            <div class="log-legend" style="margin-left:12px">
+              <span class="lg-lg lg-info">INFO</span>
+              <span class="lg-lg lg-warn">WARN</span>
+              <span class="lg-lg lg-err">ERROR</span>
+            </div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadFileLog('dhcp')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgFileLogDhcp"><div class="empty">暂无日志</div></div>
+          <div class="terminal" id="cfgFileLogDhcp"><div class="empty">暂无日志</div></div>
         </div>
       </div>
 
       <!-- TFTP Tab -->
       <div class="cfg-panel" id="cfg-panel-tftp">
-        <div class="cfg-section">
-          <div class="cfg-section-title">服务与目录</div>
-          <div class="grid">
-            <div class="field"><span>启用</span><select id="tftpEnabled"><option value="true">是</option><option value="false">否</option></select></div>
-            <div class="field"><span>监听 IP</span><input id="tftpListenIp"></div>
-            <div class="field"><span>根目录</span><input id="tftpRoot"></div>
+        <div class="cfg-hero">
+          <div class="cfg-hero-brand">
+            <div class="cfg-hero-logo" style="background:linear-gradient(135deg,#a855f7,#6366f1)"><span>T</span><span>F</span><span>T</span><span>P</span></div>
+            <div class="cfg-hero-meta">
+              <div class="cfg-hero-title">TFTP 服务</div>
+              <div class="cfg-hero-tags">
+                <span class="cfg-tag">UDP :69</span>
+                <span class="cfg-tag">引导文件分发</span>
+              </div>
+            </div>
+          </div>
+          <div class="cfg-hero-status">
+            <span class="cfg-status-label">运行状态</span>
+            <div class="cfg-status-switch">
+              <label class="switch">
+                <input type="checkbox" id="tftpEnabledSw">
+                <span class="switch-slider"></span>
+              </label>
+              <span class="cfg-status-text" id="tftpStatusText">已停止</span>
+            </div>
           </div>
         </div>
-        <div class="cfg-section">
-          <div class="cfg-section-title">性能与日志</div>
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">01</span>服务与目录</div>
+            <div class="cfg-card-sub">监听与根目录</div>
+          </div>
           <div class="grid">
-            <div class="field"><span>传输超时（秒）</span><input id="tftpTimeout"></div>
-            <div class="field"><span>最大并发</span><input id="tftpMaxConn"></div>
-            <div class="field"><span>访问日志</span><select id="tftpAccessLog"><option value="true">开</option><option value="false">关</option></select></div>
+            <div class="field"><label class="f-label">监听 IP</label><input class="f-input mono" id="tftpListenIp"></div>
+            <div class="field"><label class="f-label">根目录</label><input class="f-input mono" id="tftpRoot"></div>
           </div>
         </div>
-        <div class="cfg-save-bar"><button class="btn" onclick="saveTftp()">保存 TFTP 配置</button></div>
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">02</span>性能与日志</div>
+            <div class="cfg-card-sub">并发与传输控制</div>
+          </div>
+          <div class="grid">
+            <div class="field"><label class="f-label">传输超时 <em>sec</em></label><input class="f-input mono" id="tftpTimeout"></div>
+            <div class="field"><label class="f-label">最大并发</label><input class="f-input mono" id="tftpMaxConn"></div>
+            <div class="field"><label class="f-label">访问日志</label><select id="tftpAccessLog"><option value="true">开</option><option value="false">关</option></select></div>
+          </div>
+        </div>
+        <div class="cfg-save-bar"><button class="btn btn-save" onclick="saveTftp()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>保存 TFTP 配置</button></div>
         <!-- TFTP 日志 -->
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>TFTP 操作日志</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('tftp')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">03</span>操作日志</div>
+            <div class="cfg-card-sub">后台管理操作审计</div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('tftp')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgLogTftp"><div class="empty">暂无日志</div></div>
+          <div class="log-table-wrap">
+            <table class="log-table" id="cfgLogTftp"><tbody><tr><td class="empty">加载中...</td></tr></tbody></table>
+          </div>
         </div>
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>服务端文件日志（TFTP / 请求日志）</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadFileLog('tftp')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">04</span>服务端日志</div>
+            <div class="cfg-card-sub">TFTP / 请求日志（终端实时）</div>
+            <div class="log-legend" style="margin-left:12px">
+              <span class="lg-lg lg-info">INFO</span>
+              <span class="lg-lg lg-warn">WARN</span>
+              <span class="lg-lg lg-err">ERROR</span>
+            </div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadFileLog('tftp')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgFileLogTftp"><div class="empty">暂无日志</div></div>
+          <div class="terminal" id="cfgFileLogTftp"><div class="empty">暂无日志</div></div>
         </div>
       </div>
 
       <!-- HTTP Tab -->
       <div class="cfg-panel" id="cfg-panel-http">
-        <div class="cfg-section">
-          <div class="cfg-section-title">服务地址</div>
+        <div class="cfg-hero">
+          <div class="cfg-hero-brand">
+            <div class="cfg-hero-logo" style="background:linear-gradient(135deg,#22c55e,#0ea5e9)"><span>H</span><span>T</span><span>T</span><span>P</span></div>
+            <div class="cfg-hero-meta">
+              <div class="cfg-hero-title">HTTP 服务</div>
+              <div class="cfg-hero-tags">
+                <span class="cfg-tag">TCP :80</span>
+                <span class="cfg-tag">管理后台</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">01</span>服务地址</div>
+            <div class="cfg-card-sub">监听与资源目录</div>
+          </div>
           <div class="grid">
-            <div class="field"><span>监听地址</span><input id="httpListenAddr"></div>
-            <div class="field"><span>资源根目录</span><input id="httpWebRoot"></div>
+            <div class="field"><label class="f-label">监听地址</label><input class="f-input mono" id="httpListenAddr"></div>
+            <div class="field"><label class="f-label">资源根目录</label><input class="f-input mono" id="httpWebRoot"></div>
           </div>
         </div>
-        <div class="cfg-save-bar"><button class="btn" onclick="saveHttp()">保存 HTTP 配置</button></div>
+        <div class="cfg-save-bar"><button class="btn btn-save" onclick="saveHttp()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>保存 HTTP 配置</button></div>
         <!-- HTTP 日志 -->
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>HTTP 操作日志</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('http')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">02</span>操作日志</div>
+            <div class="cfg-card-sub">后台管理操作审计</div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadCfgLog('http')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgLogHttp"><div class="empty">暂无日志</div></div>
+          <div class="log-table-wrap">
+            <table class="log-table" id="cfgLogHttp"><tbody><tr><td class="empty">加载中...</td></tr></tbody></table>
+          </div>
         </div>
-        <div class="cfg-log-panel">
-          <div class="cfg-log-header">
-            <h4>服务端文件日志（HTTP / 请求日志）</h4>
-            <button class="btn btn-sm btn-ghost" onclick="loadFileLog('http')">刷新</button>
+        <div class="cfg-card log-card">
+          <div class="cfg-card-head">
+            <div class="cfg-card-title"><span class="cfg-idx">03</span>服务端日志</div>
+            <div class="cfg-card-sub">HTTP / 请求日志（终端实时）</div>
+            <div class="log-legend" style="margin-left:12px">
+              <span class="lg-lg lg-info">INFO</span>
+              <span class="lg-lg lg-warn">WARN</span>
+              <span class="lg-lg lg-err">ERROR</span>
+            </div>
+            <div class="log-toolbar" style="margin-left:auto">
+              <span class="log-live"><span class="log-dot"></span>自动刷新</span>
+              <button class="btn btn-sm btn-ghost" onclick="loadFileLog('http')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>刷新</button>
+            </div>
           </div>
-          <div class="cfg-log-list" id="cfgFileLogHttp"><div class="empty">暂无日志</div></div>
+          <div class="terminal" id="cfgFileLogHttp"><div class="empty">暂无日志</div></div>
         </div>
       </div>
     </div>
@@ -214,49 +384,50 @@
     <!-- 主机管理 -->
     <div class="page" id="page-hosts">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">主机管理</h3>
-          <div style="display:flex;gap:8px">
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#3b82f6,#22d3ee)"><svg viewBox="0 0 24 24"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 1v4M15 1v4M3 9h18"/></svg></span>
+          <div><h3>主机管理</h3><p class="card-head-sub">HOST INVENTORY · IPMI 电源管理</p></div>
+          <div class="card-head-actions">
             <button class="btn btn-ghost" onclick="downloadAuthed('/api/host/excel/template')">下载模版</button>
             <button class="btn btn-ghost" onclick="downloadAuthed('/api/host/excel/export')">导出 Excel</button>
-            <button class="btn" onclick="openHostModal()">+ 新增主机</button>
+            <button class="btn btn-sm btn-add" onclick="openHostModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新增主机</button>
           </div>
         </div>
         <!-- 搜索 + 批量操作工具栏 -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
-          <input type="text" id="hostSearch" placeholder="搜索主机名或 IPMI 地址..." style="width:220px;padding:5px 10px;font-size:13px" onkeydown="if(event.key==='Enter')hostSearch()">
+        <div class="toolbar">
+          <input type="text" id="hostSearch" class="toolbar-input" placeholder="搜索主机名或 IPMI 地址..." onkeydown="if(event.key==='Enter')hostSearch()">
           <button class="btn btn-sm" onclick="hostSearch()">搜索</button>
           <button class="btn btn-sm btn-ghost" onclick="hostClearSearch()">清除</button>
-          <span style="color:var(--muted)">|</span>
-          <span style="color:var(--muted);font-size:13px" id="hostSelCount">已选 0 台</span>
-          <span style="color:var(--muted)">|</span>
+          <span class="tbar-sep"></span>
+          <span class="tbar-text" id="hostSelCount">已选 0 台</span>
+          <span class="tbar-sep"></span>
           <button class="btn btn-sm btn-danger" onclick="batchHost('delete')">批量删除</button>
           <button class="btn btn-sm btn-ok" onclick="batchHost('on')">批量开机</button>
           <button class="btn btn-sm btn-warn" onclick="batchHost('cycle')">批量重启</button>
           <button class="btn btn-sm btn-danger" onclick="batchHost('off')">批量关机</button>
           <button class="btn btn-sm btn-ghost" onclick="batchExportHost()">导出选中</button>
-          <span style="color:var(--muted);margin-left:auto">|</span>
+          <span class="tbar-spacer"></span>
           <input type="file" id="hostImportFile" accept=".xlsx,.xls" style="display:none" onchange="importHostsExcel()">
           <button class="btn btn-sm" onclick="document.getElementById('hostImportFile').click()">导入 Excel</button>
         </div>
-        <table>
-          <thead><tr>
-            <th style="width:36px"><input type="checkbox" id="hostSelAll" onchange="toggleAllHost(this)"></th>
-            <th>ID</th><th>主机名</th><th>IPMI 地址</th><th>IPMI 用户</th><th>状态</th><th>电源</th><th>操作</th>
-          </tr></thead>
-          <tbody id="hostTbody"></tbody>
-        </table>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th style="width:36px"><input type="checkbox" id="hostSelAll" onchange="toggleAllHost(this)"></th>
+              <th>ID</th><th>主机名</th><th>IPMI 地址</th><th>IPMI 用户</th><th>状态</th><th>电源</th><th>操作</th>
+            </tr></thead>
+            <tbody id="hostTbody"></tbody>
+          </table>
+        </div>
         <!-- 分页 -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-          <div style="color:var(--muted);font-size:13px">
-            共 <span id="hostTotal" style="color:var(--txt);font-weight:600">0</span> 台主机
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
+        <div class="pager">
+          <div class="pager-info">共 <span id="hostTotal" class="pager-num">0</span> 台主机</div>
+          <div class="pager-ctrl">
             <button class="btn btn-sm btn-ghost" id="hostPrevBtn" onclick="hostPrevPage()" disabled>&laquo; 上一页</button>
-            <span style="font-size:13px;color:var(--muted);min-width:80px;text-align:center" id="hostPageInfo">1 / 1</span>
+            <span class="pager-page" id="hostPageInfo">1 / 1</span>
             <button class="btn btn-sm btn-ghost" id="hostNextBtn" onclick="hostNextPage()" disabled>下一页 &raquo;</button>
-            <span style="color:var(--muted);font-size:13px;margin-left:8px">每页</span>
-            <select id="hostPageSize" onchange="hostChangePageSize()" style="width:auto;padding:4px 8px;font-size:12px">
+            <span class="pager-size-label">每页</span>
+            <select id="hostPageSize" onchange="hostChangePageSize()" class="pager-select">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
@@ -270,51 +441,52 @@
     <!-- 主机资源 -->
     <div class="page" id="page-hostres">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">主机资源管理（node-info.txt）</h3>
-          <div style="display:flex;gap:8px">
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></span>
+          <div><h3>主机资源管理</h3><p class="card-head-sub">NODE-INFO · BOND 网络资源</p></div>
+          <div class="card-head-actions">
             <button class="btn btn-ghost" onclick="downloadAuthed('/api/host-resource/template')">下载模版</button>
             <button class="btn btn-ghost" onclick="downloadAuthed('/api/host-resource/excel/export')">导出 Excel</button>
             <button class="btn btn-ghost" onclick="downloadAuthed('/api/host-resource/node-info/export')">导出 txt</button>
             <button class="btn btn-warn" onclick="generateNodeInfo()">生成 node-info.txt</button>
           </div>
         </div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px;line-height:1.6">
-          使用专属 Excel 模版批量录入主机的 Bond 网络资源（列：IPMI、主机名、bond0/1/2 网络字段），
-          导入后自动生成 <code>assets/web_root/node-info.txt</code>，供部署脚本按 IPMI 匹配配置网络。
-        </p>
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>使用专属 Excel 模版批量录入主机的 Bond 网络资源（列：IPMI、主机名、bond0/1/2 网络字段），导入后自动生成 <code>assets/web_root/node-info.txt</code>，供部署脚本按 IPMI 匹配配置网络。</span>
+        </div>
         <!-- 批量操作工具栏 -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
-          <input type="text" id="resSearch" placeholder="搜索主机名或 IPMI 地址..." style="width:220px;padding:5px 10px;font-size:13px" onkeydown="if(event.key==='Enter')resSearch()">
+        <div class="toolbar">
+          <input type="text" id="resSearch" class="toolbar-input" placeholder="搜索主机名或 IPMI 地址..." onkeydown="if(event.key==='Enter')resSearch()">
           <button class="btn btn-sm" onclick="resSearch()">搜索</button>
           <button class="btn btn-sm btn-ghost" onclick="resClearSearch()">清除</button>
-          <span style="color:var(--muted)">|</span>
-          <span style="color:var(--muted);font-size:13px" id="resSelCount">已选 0 台</span>
-          <span style="color:var(--muted)">|</span>
+          <span class="tbar-sep"></span>
+          <span class="tbar-text" id="resSelCount">已选 0 台</span>
+          <span class="tbar-sep"></span>
           <button class="btn btn-sm btn-danger" onclick="batchResDelete()">批量删除</button>
           <button class="btn btn-sm btn-ghost" onclick="batchResExport()">导出选中</button>
-          <span style="color:var(--muted);margin-left:auto">|</span>
+          <span class="tbar-spacer"></span>
           <input type="file" id="resImportFile" accept=".xlsx,.xls" style="display:none" onchange="importResExcel()">
           <button class="btn btn-sm" onclick="document.getElementById('resImportFile').click()">导入 Excel</button>
         </div>
-        <table id="resTable">
-          <thead><tr>
-            <th style="width:36px"><input type="checkbox" id="resSelAll" onchange="toggleAllRes(this)"></th>
-            <th >ID</th><th>主机名</th><th>IPMI 地址</th><th>Bond0 IP</th><th>Bond2 IP</th><th>Bond1 IP</th><th style="width:60px">详情</th>
-          </tr></thead>
-          <tbody id="resTbody"></tbody>
-        </table>
+        <div class="tbl-wrap">
+          <table id="resTable">
+            <thead><tr>
+              <th style="width:36px"><input type="checkbox" id="resSelAll" onchange="toggleAllRes(this)"></th>
+              <th>ID</th><th>主机名</th><th>IPMI 地址</th><th>Bond0 IP</th><th>Bond2 IP</th><th>Bond1 IP</th><th style="width:60px">详情</th>
+            </tr></thead>
+            <tbody id="resTbody"></tbody>
+          </table>
+        </div>
         <!-- 分页 -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-          <div style="color:var(--muted);font-size:13px">
-            共 <span id="resTotal" style="color:var(--txt);font-weight:600">0</span> 条资源
-          </div>
-          <div style="display:flex;align-items:center;gap:6px">
+        <div class="pager">
+          <div class="pager-info">共 <span id="resTotal" class="pager-num">0</span> 条资源</div>
+          <div class="pager-ctrl">
             <button class="btn btn-sm btn-ghost" id="resPrevBtn" onclick="resPrevPage()" disabled>&laquo; 上一页</button>
-            <span style="font-size:13px;color:var(--muted);min-width:80px;text-align:center" id="resPageInfo">1 / 1</span>
+            <span class="pager-page" id="resPageInfo">1 / 1</span>
             <button class="btn btn-sm btn-ghost" id="resNextBtn" onclick="resNextPage()" disabled>下一页 &raquo;</button>
-            <span style="color:var(--muted);font-size:13px;margin-left:8px">每页</span>
-            <select id="resPageSize" onchange="resChangePageSize()" style="width:auto;padding:4px 8px;font-size:12px">
+            <span class="pager-size-label">每页</span>
+            <select id="resPageSize" onchange="resChangePageSize()" class="pager-select">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
@@ -323,17 +495,17 @@
           </div>
         </div>
         <!-- node-info.txt 预览 -->
-        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <h4 style="color:var(--muted);font-size:13px;margin:0">node-info.txt 当前内容</h4>
+        <div class="node-info-wrap">
+          <div class="node-info-head">
+            <h4>NODE-INFO.TXT 当前内容</h4>
             <button class="btn btn-sm btn-ghost" onclick="loadNodeInfo()">刷新</button>
           </div>
-          <pre id="nodeInfoPreview" style="max-height:200px;overflow:auto;font-size:12px"></pre>
+          <pre id="nodeInfoPreview" class="term-preview"></pre>
         </div>
       </div>
     </div>
 
-    <!-- 引导脚本（KS 模板 + iPXE 脚本） -->
+    <!-- 引导脚本（KS 模板 + iPXE 脚本 + 部署脚本） -->
     <div class="page" id="page-scripts">
       <div class="tab-bar">
         <button class="active" data-stab="ks" onclick="switchScriptTab('ks')">KS 模板</button>
@@ -343,99 +515,124 @@
 
       <!-- KS 模板 -->
       <div class="card" id="stab-ks">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">KS 模板列表（同一时间仅一个生效）</h3>
-          <div style="display:flex;gap:8px">
-            <button class="btn" onclick="openKsModal()">+ 新建模板</button>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#22d3ee,#3b82f6)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg></span>
+          <div><h3>KS 模板列表</h3><p class="card-head-sub">KICKSTART · 同一时间仅一个生效</p></div>
+          <div class="card-head-actions">
+            <button class="btn btn-sm btn-add" onclick="openKsModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建模板</button>
           </div>
         </div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">
-          设置生效的模板会写入 <code>assets/web_root/ks.cfg</code>，编辑生效模板后自动同步到磁盘。
-        </p>
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>设置生效的模板会写入 <code>assets/web_root/ks.cfg</code>，编辑生效模板后自动同步到磁盘。</span>
+        </div>
         <div class="img-picker">
           <div class="field img-picker-field">
-            <label>选择系统镜像（用于 %pre 软件源 URL 中的镜像名替换）</label>
+            <label>选择系统镜像 <em>用于 %pre 软件源 URL 中的镜像名替换</em></label>
             <select id="ksImage"><option value="">默认生效镜像</option></select>
           </div>
           <button class="btn img-picker-btn" onclick="generateKSByImage()">按所选镜像生成 KS</button>
         </div>
-        <table>
-          <thead><tr><th>名称</th><th>系统类型</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
-          <tbody id="ksTbody"></tbody>
-        </table>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>名称</th><th>系统类型</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="ksTbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- iPXE 脚本 -->
       <div class="card" id="stab-ipxe" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">iPXE 脚本列表（同一时间仅一个生效）</h3>
-          <button class="btn" onclick="openIPxeModal()">+ 新建脚本</button>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#8b5cf6,#d946ef)"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>
+          <div><h3>iPXE 脚本列表</h3><p class="card-head-sub">AUTOEXEC.IPXE · 同一时间仅一个生效</p></div>
+          <div class="card-head-actions">
+            <button class="btn btn-sm btn-add" onclick="openIPxeModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建脚本</button>
+          </div>
         </div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">
-          设置生效的脚本会写入 <code>assets/tftp_root/autoexec.ipxe</code>，客户端下次 PXE 引导时使用。<br>
-          占位符 <code>@@PXE_SERVER@@</code> 在传输时由服务端自动替换为 PXE 服务 IP。
-        </p>
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>设置生效的脚本会写入 <code>assets/tftp_root/autoexec.ipxe</code>，客户端下次 PXE 引导时使用。<br>占位符 <code>@@PXE_SERVER@@</code> 在传输时由服务端自动替换为 PXE 服务 IP。</span>
+        </div>
         <div class="img-picker">
           <div class="field img-picker-field">
-            <label>选择系统镜像（按镜像名称+架构渲染生成新脚本）</label>
+            <label>选择系统镜像 <em>按镜像名称+架构渲染生成新脚本</em></label>
             <select id="ipxeImage"><option value="0">手动编辑</option></select>
           </div>
           <button class="btn img-picker-btn" onclick="renderIPxeByImage()">按所选镜像生成脚本</button>
         </div>
-        <table>
-          <thead><tr><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
-          <tbody id="ipxeTbody"></tbody>
-        </table>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="ipxeTbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- 部署脚本 -->
       <div class="card" id="stab-deploy" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">部署脚本列表</h3>
-          <button class="btn" onclick="openDeployModal()">+ 新建脚本</button>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#f59e0b,#22c55e)"><svg viewBox="0 0 24 24"><path d="M18 9v3a3 3 0 0 1-3 3h-3M9 15H6a3 3 0 0 1-3-3V9"/><circle cx="12" cy="12" r="9"/></svg></span>
+          <div><h3>部署脚本列表</h3><p class="card-head-sub">DEPLOY.SH · 安装完成后执行</p></div>
+          <div class="card-head-actions">
+            <button class="btn btn-sm btn-add" onclick="openDeployModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建脚本</button>
+          </div>
         </div>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">
-          部署脚本在系统安装完成后由客户端拉取执行。设置生效的脚本会持久化到 <code>assets/web_root/deploy.sh</code>。
-        </p>
-        <table>
-          <thead><tr><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
-          <tbody id="deployTbody"></tbody>
-        </table>
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>部署脚本在系统安装完成后由客户端拉取执行。设置生效的脚本会持久化到 <code>assets/web_root/deploy.sh</code>。</span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody id="deployTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- 部署脚本编辑弹窗 -->
     <div class="modal-bg" id="deployModalBg">
       <div class="modal" style="max-width:880px;width:90vw">
-        <h3 id="deployModalTitle">新建部署脚本</h3>
+        <div class="modal-head">
+          <h3 id="deployModalTitle">新建部署脚本</h3>
+          <button class="btn btn-sm btn-ghost" onclick="closeModal('deployModalBg')">&times;</button>
+        </div>
         <input type="hidden" id="deployId">
-        <label>脚本名称</label><input id="deployName" placeholder="例如：磁盘分区脚本">
-        <label>脚本内容（<code>@@PXE_SERVER@@</code> 传输时替换为 PXE 服务 IP）</label>
-        <textarea id="deployContent" style="min-height:440px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="#!/bin/bash"></textarea>
+        <label class="f-label">脚本名称 <em>script name</em></label>
+        <input id="deployName" class="f-input mono" placeholder="例如：磁盘分区脚本">
+        <label class="f-label">脚本内容 <em>@@PXE_SERVER@@ 传输时替换为 PXE 服务 IP</em></label>
+        <textarea id="deployContent" class="f-textarea" style="min-height:440px" placeholder="#!/bin/bash"></textarea>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn btn-sm btn-ghost" onclick="previewDeploy()">预览（替换占位符后效果）</button>
         </div>
         <div id="deployPreviewWrap" style="display:none;margin-top:12px">
-          <label style="font-size:12px;color:var(--muted)">预览效果（@@PXE_SERVER@@ → 192.168.200.10）</label>
-          <pre id="deployPreview" style="max-height:280px;overflow:auto;background:var(--card2);padding:12px;border:1px solid var(--border);border-radius:8px;font-size:12px;white-space:pre-wrap;word-break:break-word;margin-top:6px"></pre>
+          <label class="f-label">预览效果 <em>@@PXE_SERVER@@ → 192.168.200.10</em></label>
+          <pre id="deployPreview" class="term-preview" style="max-height:280px;white-space:pre-wrap;word-break:break-word"></pre>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeModal('deployModalBg')">取消</button>
-          <button class="btn" onclick="saveDeploy()">保存</button>
+          <button class="btn btn-save" onclick="saveDeploy()">保存</button>
         </div>
       </div>
     </div>
 
     <!-- 系统镜像 -->
     <div class="page" id="page-images">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
-        <button class="btn" onclick="openImageModal()">+ 上传 ISO 新增镜像</button>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#22c55e,#22d3ee)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 12h10"/><path d="M12 12v10"/><circle cx="12" cy="12" r="1"/></svg></span>
+          <div><h3>系统镜像仓库</h3><p class="card-head-sub">INSTALL REPO · {名称}/{架构}</p></div>
+          <div class="card-head-actions">
+            <button class="btn btn-sm btn-add" onclick="openImageModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>上传 ISO 新增镜像</button>
+          </div>
+        </div>
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>上传 ISO 后自动解压到 <code>web_root/{镜像名称}/{架构}</code>；<b>一个名称可上传两个架构</b>（x86_64 / aarch64）。设置某个镜像为「默认」后，iPXE 与 KS 渲染将按该镜像名称生成 <code>/{名称}/${arch}</code> 安装源路径。</span>
+        </div>
+        <div class="image-grid" id="imageGrid"></div>
       </div>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.6">
-        上传 ISO 后自动解压到 <code>assets/web_root/{镜像名称}/{架构}</code>；<b>一个名称可上传两个架构</b>（x86_64 / aarch64）。
-        设置某个镜像为「默认」后，iPXE 与 KS 渲染将按该镜像名称生成 <code>/{名称}/${arch}</code> 安装源路径。
-      </p>
-      <div class="image-grid" id="imageGrid"></div>
     </div>
 
     <!-- 镜像上传弹窗 -->
@@ -444,12 +641,12 @@
     <!-- 主机资源详情弹窗 -->
     <div class="modal-bg" id="resDetailModalBg">
       <div class="modal" style="width:640px;max-height:82vh;overflow-y:auto">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div class="modal-head">
           <div>
-            <h3 style="margin:0" id="resDetailName"></h3>
-            <span style="color:var(--muted);font-size:13px" id="resDetailIPMI"></span>
+            <h3 id="resDetailName" style="margin:0 0 4px"></h3>
+            <span style="color:var(--muted);font-size:12px;font-family:'JetBrains Mono',ui-monospace,monospace" id="resDetailIPMI"></span>
           </div>
-          <button class="btn btn-sm btn-ghost" onclick="closeModal('resDetailModalBg')">关闭</button>
+          <button class="btn btn-sm btn-ghost" onclick="closeModal('resDetailModalBg')">&times;</button>
         </div>
         <div id="resDetailContent"></div>
       </div>
@@ -458,35 +655,34 @@
     <!-- Boot 文件更新弹窗（initrd.img / vmlinuz） -->
     <div class="modal-bg" id="bootFileModalBg">
       <div class="modal" style="width:480px">
-        <h3 id="bootFileModalTitle">更新引导文件</h3>
+        <div class="modal-head">
+          <h3 id="bootFileModalTitle">更新引导文件</h3>
+          <button class="btn btn-sm btn-ghost" onclick="closeModal('bootFileModalBg')">&times;</button>
+        </div>
         <input type="hidden" id="bootFileImageId">
-        <label>目标架构</label>
-        <select id="bootFileArch">
+        <label class="f-label">目标架构 <em>architecture</em></label>
+        <select id="bootFileArch" class="pager-select" style="width:100%">
           <option value="x86_64">x86_64</option>
           <option value="aarch64">aarch64</option>
         </select>
-        <label>文件类型</label>
-        <select id="bootFileType">
+        <label class="f-label">文件类型 <em>file type</em></label>
+        <select id="bootFileType" class="pager-select" style="width:100%">
           <option value="initrd">initrd.img</option>
           <option value="vmlinuz">vmlinuz</option>
         </select>
-        <label>选择文件</label>
-        <input type="file" id="bootFileInput" accept="">
-        <p style="color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5">
-          旧文件将被备份为 <code>{原文件名}.bak.{时间戳}</code>，然后替换为新上传的文件。<br>
-          目标路径：<code>web_root/{镜像名}/{架构}/images/pxeboot/</code>
-        </p>
-        <div id="bootFileProgressWrap" style="display:none;margin-top:14px">
-          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px">
-            <span id="bootFileProgressText">上传中 0%</span>
-          </div>
-          <div style="background:var(--card2);border-radius:8px;overflow:hidden;height:12px">
-            <div id="bootFileProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s"></div>
-          </div>
+        <label class="f-label">选择文件 <em>boot file</em></label>
+        <input type="file" id="bootFileInput" class="f-file" accept="">
+        <div class="hint" style="margin-bottom:12px">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>旧文件将被备份为 <code>{原文件名}.bak.{时间戳}</code> 后替换。<br>目标路径：<code>web_root/repo/{镜像名}/{架构}/images/pxeboot/</code></span>
+        </div>
+        <div class="progress-wrap" id="bootFileProgressWrap" style="display:none">
+          <div class="progress-meta"><span id="bootFileProgressText">上传中 0%</span></div>
+          <div class="progress-track"><div class="progress-bar" id="bootFileProgressBar"></div></div>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeModal('bootFileModalBg')">取消</button>
-          <button class="btn" id="bootFileUploadBtn" onclick="uploadBootFile()">上传替换</button>
+          <button class="btn btn-save" id="bootFileUploadBtn" onclick="uploadBootFile()">上传替换</button>
         </div>
       </div>
     </div>
@@ -494,59 +690,73 @@
     <!-- 文件管理 -->
     <div class="page" id="page-files">
       <div class="card">
-        <h3>上传文件</h3>
-        <p style="color:var(--muted);font-size:13px;margin-bottom:12px">
-          上传的文件保存到固定目录 <code>web_root/uploads</code>，可通过公开链接 <code>/uploads/{文件名}</code> 被所有人访问下载（无需登录）。支持同时选择多个文件。
-        </p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <input type="file" id="fileUploadInput" multiple accept="*" style="width:auto;flex:1;min-width:220px">
-          <button class="btn" onclick="uploadFile()">上传文件</button>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg></span>
+          <div><h3>文件上传</h3><p class="card-head-sub">UPLOADS · 公开访问</p></div>
         </div>
-        <div id="fileProgressWrap" style="display:none;margin-top:14px">
-          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px">
+        <div class="hint">
+          <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>上传的文件保存到固定目录 <code>web_root/uploads</code>，可通过公开链接 <code>/uploads/{文件名}</code> 被所有人访问下载（无需登录）。支持同时选择多个文件。</span>
+        </div>
+        <div class="upload-bar">
+          <input type="file" id="fileUploadInput" multiple accept="*" class="f-file" style="flex:1">
+          <button class="btn btn-save" onclick="uploadFile()">上传文件</button>
+        </div>
+        <div class="progress-wrap" id="fileProgressWrap" style="display:none">
+          <div class="progress-meta">
             <span id="fileProgressText">上传中 0%</span>
             <span id="fileProgressCount"></span>
           </div>
-          <div style="background:var(--card2);border-radius:8px;overflow:hidden;height:12px">
-            <div id="fileProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s"></div>
-          </div>
+          <div class="progress-track"><div class="progress-bar" id="fileProgressBar"></div></div>
         </div>
       </div>
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-          <h3 style="margin:0">已上传文件</h3>
-          <button class="btn btn-ghost" onclick="loadFiles()">刷新</button>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#3b82f6,#6366f1)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+          <div><h3>已上传文件</h3><p class="card-head-sub">SHARED FILES</p></div>
+          <div class="card-head-actions">
+            <button class="btn btn-ghost" onclick="loadFiles()">刷新</button>
+          </div>
         </div>
-        <table>
-          <thead><tr><th>文件名</th><th>大小</th><th>上传时间</th><th>公开链接</th><th>操作</th></tr></thead>
-          <tbody id="fileTbody"></tbody>
-        </table>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>文件名</th><th>大小</th><th>上传时间</th><th>公开链接</th><th>操作</th></tr></thead>
+            <tbody id="fileTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
     <!-- 操作日志 -->
     <div class="page" id="page-logs">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
-          <h3 style="margin:0">操作审计日志</h3>
-          <div style="display:flex;gap:8px;align-items:center">
-            <select id="logOpFilter" onchange="filterLogs()" style="width:auto;font-size:13px">
-              <option value="">全部类型</option>
-              <option value="login">登录</option>
-              <option value="logout">登出</option>
-              <option value="delete">删除</option>
-              <option value="create">创建</option>
-              <option value="update">更新</option>
-            </select>
-            <input type="text" id="logSearch" placeholder="搜索操作人/详情..." onkeydown="if(event.key==='Enter')filterLogs()" style="width:200px;padding:5px 10px;font-size:13px">
-            <button class="btn btn-sm btn-ghost" onclick="loadLogs()">刷新</button>
-            <span style="color:var(--muted);font-size:12px">每15秒自动刷新</span>
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></span>
+          <div><h3>操作审计日志</h3><p class="card-head-sub">AUDIT TRAIL · 保留最近 200 条</p></div>
+          <div class="card-head-actions">
+            <span class="log-live"><span class="log-dot"></span>15s 自动刷新</span>
+            <button class="btn btn-sm" onclick="loadLogs()">刷新</button>
           </div>
         </div>
-        <table>
-          <thead><tr><th>ID</th><th>操作人</th><th>类型</th><th>详情</th><th>客户端 IP</th><th>时间</th></tr></thead>
-          <tbody id="logTbody"></tbody>
-        </table>
+        <div class="toolbar">
+          <select id="logOpFilter" onchange="filterLogs()" class="pager-select">
+            <option value="">全部类型</option>
+            <option value="login">登录</option>
+            <option value="logout">登出</option>
+            <option value="delete">删除</option>
+            <option value="create">创建</option>
+            <option value="update">更新</option>
+          </select>
+          <input type="text" id="logSearch" class="toolbar-input" placeholder="搜索操作人/详情..." onkeydown="if(event.key==='Enter')filterLogs()">
+          <button class="btn btn-sm btn-ghost" onclick="loadLogs()">搜索</button>
+          <span class="tbar-spacer"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>操作人</th><th>类型</th><th>详情</th><th>客户端 IP</th><th>时间</th></tr></thead>
+            <tbody id="logTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -573,32 +783,37 @@
       </div>
 
       <div class="card">
+        <div class="card-head">
+          <span class="card-head-ic" style="background:linear-gradient(135deg,#22c55e,#3b82f6)"><svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="10"/></svg></span>
+          <div><h3>装机完成记录</h3><p class="card-head-sub">INSTALL REPORTS · LLDP 网络拓扑</p></div>
+        </div>
         <!-- 搜索 + 过滤工具栏 -->
-        <div class="install-toolbar">
-          <input type="text" id="installSearch" placeholder="搜索主机名、IP、IPMI、交换机或网卡..." onkeydown="if(event.key==='Enter')filterInstall()">
-          <select id="installStatusFilter" onchange="filterInstall()">
+        <div class="toolbar install-toolbar">
+          <input type="text" id="installSearch" class="toolbar-input" style="flex:1;min-width:200px" placeholder="搜索主机名、IP、IPMI、交换机或网卡..." onkeydown="if(event.key==='Enter')filterInstall()">
+          <select id="installStatusFilter" onchange="filterInstall()" class="pager-select">
             <option value="">全部状态</option>
             <option value="success">成功</option>
             <option value="failed">失败</option>
           </select>
-          <select id="installSort" onchange="filterInstall()">
+          <select id="installSort" onchange="filterInstall()" class="pager-select">
             <option value="desc">最新优先</option>
             <option value="asc">最早优先</option>
           </select>
           <button class="btn btn-sm btn-ghost" onclick="loadInstallRecords()">刷新</button>
-          <span style="color:var(--muted);font-size:12px;margin-left:auto" id="installCount">0 条记录</span>
+          <span class="tbar-spacer"></span>
+          <span class="tbar-text" id="installCount">0 条记录</span>
         </div>
 
         <!-- 行内记录列表 -->
         <div class="install-list" id="installTbody"></div>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-          <span style="color:var(--muted);font-size:13px">第 <span id="installPageInfo">1 / 1</span> 页</span>
-          <div style="display:flex;align-items:center;gap:6px">
+        <div class="pager">
+          <span class="pager-info">第 <span id="installPageInfo" class="pager-num">1 / 1</span> 页</span>
+          <div class="pager-ctrl">
             <button class="btn btn-sm btn-ghost" id="installPrevBtn" onclick="installPrevPage()" disabled>&laquo; 上一页</button>
             <button class="btn btn-sm btn-ghost" id="installNextBtn" onclick="installNextPage()" disabled>下一页 &raquo;</button>
-            <span style="color:var(--muted);font-size:13px;margin-left:8px">每页</span>
-            <select id="installPageSize" onchange="installChangePageSize()" style="width:auto;padding:4px 8px;font-size:12px">
+            <span class="pager-size-label">每页</span>
+            <select id="installPageSize" onchange="installChangePageSize()" class="pager-select">
               <option value="10">10</option>
               <option value="20" selected>20</option>
               <option value="50">50</option>
@@ -614,15 +829,22 @@
 <!-- 弹窗 -->
 <div class="modal-bg" id="hostModalBg">
   <div class="modal">
-    <h3 id="hostModalTitle">新增主机</h3>
+    <div class="modal-head">
+      <h3 id="hostModalTitle">新增主机</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('hostModalBg')">&times;</button>
+    </div>
     <input type="hidden" id="hostId">
-    <label>主机名</label><input id="hostName" placeholder="node-01">
-    <label>IPMI 地址（全局唯一）</label><input id="hostIpmi" placeholder="192.168.10.20">
-    <label>IPMI 用户</label><input id="hostIpmiUser" placeholder="admin">
-    <label>IPMI 密码</label><input id="hostIpmiPass" type="password" placeholder="******">
+    <label class="f-label">主机名 <em>hostname</em></label>
+    <input id="hostName" class="f-input mono" placeholder="node-01">
+    <label class="f-label">IPMI 地址 <em>全局唯一</em></label>
+    <input id="hostIpmi" class="f-input mono" placeholder="192.168.10.20">
+    <label class="f-label">IPMI 用户 <em>username</em></label>
+    <input id="hostIpmiUser" class="f-input mono" placeholder="admin">
+    <label class="f-label">IPMI 密码 <em>password</em></label>
+    <input id="hostIpmiPass" type="password" class="f-input mono" placeholder="******">
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('hostModalBg')">取消</button>
-      <button class="btn" onclick="saveHost()">保存</button>
+      <button class="btn btn-save" onclick="saveHost()">保存</button>
     </div>
   </div>
 </div>
@@ -630,85 +852,106 @@
 <!-- 修改密码弹窗 -->
 <div class="modal-bg" id="pwdModalBg">
   <div class="modal" style="max-width:400px">
-    <h3>修改密码</h3>
-    <label>旧密码</label><input id="pwdOld" type="password" placeholder="输入当前密码">
-    <label>新密码</label><input id="pwdNew" type="password" placeholder="输入新密码">
-    <label>确认新密码</label><input id="pwdConfirm" type="password" placeholder="再次输入新密码">
+    <div class="modal-head">
+      <h3>修改密码</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('pwdModalBg')">&times;</button>
+    </div>
+    <label class="f-label">旧密码 <em>current password</em></label>
+    <input id="pwdOld" type="password" class="f-input mono" placeholder="输入当前密码">
+    <label class="f-label">新密码 <em>new password</em></label>
+    <input id="pwdNew" type="password" class="f-input mono" placeholder="输入新密码">
+    <label class="f-label">确认新密码 <em>confirm password</em></label>
+    <input id="pwdConfirm" type="password" class="f-input mono" placeholder="再次输入新密码">
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('pwdModalBg')">取消</button>
-      <button class="btn" onclick="changePassword()">确认修改</button>
+      <button class="btn btn-save" onclick="changePassword()">确认修改</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="ksModalBg">
   <div class="modal">
-    <h3 id="ksModalTitle">新建 KS 模板</h3>
+    <div class="modal-head">
+      <h3 id="ksModalTitle">新建 KS 模板</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('ksModalBg')">&times;</button>
+    </div>
     <input type="hidden" id="ksId">
-    <label>模板名称</label><input id="ksName">
-    <label>系统类型</label><input id="ksOsType" placeholder="EulerOS">
-    <label>Root 密码（替换 @@ROOT_PASSWORD@@ 占位符）</label>
-    <input id="ksRootPassword" placeholder="如 Szsm@123.@" style="width:100%">
-    <p style="color:var(--muted);font-size:12px;margin-top:4px;margin-bottom:12px">
-      模板中使用 <code>rootpw --plaintext @@ROOT_PASSWORD@@</code> 占位符
-    </p>
-    <label>模板内容（占位符 @@PXE_SERVER@@ @@ROOT_PASSWORD@@ 会被替换）</label>
-    <textarea id="ksContent" style="min-height:280px"></textarea>
+    <label class="f-label">模板名称 <em>template name</em></label>
+    <input id="ksName" class="f-input mono">
+    <label class="f-label">系统类型 <em>os type</em></label>
+    <input id="ksOsType" class="f-input mono" placeholder="EulerOS">
+    <label class="f-label">Root 密码 <em>替换 @@ROOT_PASSWORD@@ 占位符</em></label>
+    <input id="ksRootPassword" class="f-input mono" placeholder="如 Szsm@123.@">
+    <div class="hint" style="margin-bottom:12px">
+      <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span>模板中使用 <code>rootpw --plaintext @@ROOT_PASSWORD@@</code> 占位符</span>
+    </div>
+    <label class="f-label">模板内容 <em>占位符 @@PXE_SERVER@@ @@ROOT_PASSWORD@@ 会被替换</em></label>
+    <textarea id="ksContent" class="f-textarea" style="min-height:280px"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('ksModalBg')">取消</button>
-      <button class="btn" onclick="previewKs()">预览</button>
-      <button class="btn" onclick="saveKs()">保存</button>
+      <button class="btn btn-ghost" onclick="previewKs()">预览</button>
+      <button class="btn btn-save" onclick="saveKs()">保存</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="ipxeModalBg">
   <div class="modal">
-    <h3 id="ipxeModalTitle">新建 iPXE 脚本</h3>
+    <div class="modal-head">
+      <h3 id="ipxeModalTitle">新建 iPXE 脚本</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('ipxeModalBg')">&times;</button>
+    </div>
     <input type="hidden" id="ipxeId">
-    <label>脚本名称</label><input id="ipxeName" placeholder="默认 autoexec.ipxe">
-    <label>脚本内容（占位符 @@PXE_SERVER@@ 传输时替换）</label>
-    <textarea id="ipxeContent" style="min-height:380px;font-family:ui-monospace,Menlo,Consolas,monospace" placeholder="#!ipxe&#10;..."></textarea>
+    <label class="f-label">脚本名称 <em>script name</em></label>
+    <input id="ipxeName" class="f-input mono" placeholder="默认 autoexec.ipxe">
+    <label class="f-label">脚本内容 <em>占位符 @@PXE_SERVER@@ 传输时替换</em></label>
+    <textarea id="ipxeContent" class="f-textarea" style="min-height:380px" placeholder="#!ipxe"></textarea>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('ipxeModalBg')">取消</button>
       <button class="btn btn-ghost" onclick="ipxePreview()">预览</button>
-      <button class="btn" onclick="saveIPxeScript()">保存</button>
+      <button class="btn btn-save" onclick="saveIPxeScript()">保存</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="imageModalBg">
   <div class="modal">
-    <h3 id="imageModalTitle">上传 ISO 新增系统镜像</h3>
-    <p style="color:var(--muted);font-size:13px;line-height:1.6">
-      一个镜像名称可对应两个架构（x86_64 / aarch64）。<br>
-      可一次上传两个 ISO，也可先传一个、之后再补充另一个。分别解压到 <code>web_root/{名称}/{架构}</code>。
-    </p>
-    <label>镜像名称（仅限字母/数字/下划线/短横线）</label><input id="imgName" placeholder="euler1" oninput="validateImgName(this)">
-    <label style="margin-top:14px">x86_64 ISO 文件 <span style="color:var(--muted);font-size:12px">（可选）</span></label>
-    <input type="file" id="imgIsoX86" accept=".iso">
-    <label style="margin-top:14px">aarch64 ISO 文件 <span style="color:var(--muted);font-size:12px">（可选，至少选一个）</span></label>
-    <input type="file" id="imgIsoArm" accept=".iso">
-    <div id="imgProgressWrap" style="display:none;margin-top:14px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px">
+    <div class="modal-head">
+      <h3 id="imageModalTitle">上传 ISO 新增系统镜像</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('imageModalBg')">&times;</button>
+    </div>
+    <div class="hint" style="margin-bottom:12px">
+      <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <span>一个镜像名称可对应两个架构（x86_64 / aarch64）。可一次上传两个 ISO，也可先传一个、之后再补充另一个，分别解压到 <code>web_root/repo/{名称}/{架构}</code>。</span>
+    </div>
+    <label class="f-label">镜像名称 <em>仅限字母/数字/下划线/短横线</em></label>
+    <input id="imgName" class="f-input mono" placeholder="euler1" oninput="validateImgName(this)">
+    <label class="f-label" style="margin-top:14px">x86_64 ISO 文件 <em>可选</em></label>
+    <input type="file" id="imgIsoX86" accept=".iso" class="f-file">
+    <label class="f-label" style="margin-top:14px">aarch64 ISO 文件 <em>可选，至少选一个</em></label>
+    <input type="file" id="imgIsoArm" accept=".iso" class="f-file">
+    <div class="progress-wrap" id="imgProgressWrap" style="display:none">
+      <div class="progress-meta">
         <span id="imgProgressText">上传中 0%</span>
         <span id="imgProgressPhase">上传文件</span>
       </div>
-      <div style="background:var(--card2);border-radius:8px;overflow:hidden;height:16px">
-        <div id="imgProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s"></div>
-      </div>
+      <div class="progress-track"><div class="progress-bar" id="imgProgressBar"></div></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('imageModalBg')">取消</button>
-      <button class="btn" onclick="uploadImage()">上传并解压</button>
+      <button class="btn btn-save" onclick="uploadImage()">上传并解压</button>
     </div>
   </div>
 </div>
 
 <div class="modal-bg" id="previewBg">
   <div class="modal" style="width:720px">
-    <h3>KS 模板预览</h3>
-    <pre id="previewContent"></pre>
+    <div class="modal-head">
+      <h3>KS 模板预览</h3>
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('previewBg')">&times;</button>
+    </div>
+    <pre id="previewContent" class="term-preview" style="max-height:420px"></pre>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('previewBg')">关闭</button></div>
   </div>
 </div>

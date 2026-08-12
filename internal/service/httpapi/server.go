@@ -43,7 +43,7 @@ func NewServer(cfg *config.Manager) *Server {
 // registerRoutes 注册全部路由。
 func (s *Server) registerRoutes() {
 	r := s.engine
-	r.Use(middleware.CORS(), middleware.RequestLogger(), gin.Recovery())
+	r.Use(middleware.CORS(), middleware.RequestID(), middleware.RequestLogger(), gin.Recovery())
 
 	// 登录接口（无需鉴权）
 	r.POST("/api/login", s.handleLogin)
@@ -62,6 +62,11 @@ func (s *Server) registerRoutes() {
 		api.PUT("/config/dhcp", s.handleUpdateDHCP)
 		api.PUT("/config/tftp", s.handleUpdateTFTP)
 		api.PUT("/config/http", s.handleUpdateHTTP)
+		// DHCP 多网段
+		api.GET("/config/dhcp/subnets", s.handleListDHCPSubnets)
+		api.POST("/config/dhcp/subnets", s.handleCreateDHCPSubnet)
+		api.PUT("/config/dhcp/subnets/:id", s.handleUpdateDHCPSubnet)
+		api.DELETE("/config/dhcp/subnets/:id", s.handleDeleteDHCPSubnet)
 
 		// 资源管理
 		api.GET("/resource", s.handleListResources)

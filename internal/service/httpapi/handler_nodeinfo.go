@@ -164,9 +164,15 @@ func (s *Server) handleImportNodeInfoExcel(c *gin.Context) {
 		}
 		imported++
 	}
-	resources, _ := db.ListHostResources()
-	content := buildNodeInfoContent(resources)
-	_ = writeFileEnsureDir(s.nodeInfoPath(), []byte(content))
+	resources, err := db.ListHostResources()
+	if err != nil {
+		logger.FromGin(c).Warn("重新生成 node-info.txt 失败（查询资源出错）: %v", err)
+	} else {
+		content := buildNodeInfoContent(resources)
+		if err := writeFileEnsureDir(s.nodeInfoPath(), []byte(content)); err != nil {
+			logger.FromGin(c).Warn("重新生成 node-info.txt 失败: %v", err)
+		}
+	}
 	s.writeLog(c, "nodeinfo_import", fmt.Sprintf("导入主机资源 %d 条，跳过 %d 条", imported, skipped))
 	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": fmt.Sprintf("导入成功 %d 条，跳过 %d 条，已重新生成 node-info.txt", imported, skipped)})
 }
@@ -259,9 +265,15 @@ func (s *Server) handleBatchDeleteHostResource(c *gin.Context) {
 	}
 	logger.Info("批量删除主机资源成功: %d 条", len(req.IDs))
 	// 重新生成 node-info.txt
-	resources, _ := db.ListHostResources()
-	content := buildNodeInfoContent(resources)
-	_ = writeFileEnsureDir(s.nodeInfoPath(), []byte(content))
+	resources, err := db.ListHostResources()
+	if err != nil {
+		logger.FromGin(c).Warn("重新生成 node-info.txt 失败（查询资源出错）: %v", err)
+	} else {
+		content := buildNodeInfoContent(resources)
+		if err := writeFileEnsureDir(s.nodeInfoPath(), []byte(content)); err != nil {
+			logger.FromGin(c).Warn("重新生成 node-info.txt 失败: %v", err)
+		}
+	}
 
 	s.writeLog(c, "res_batch_delete", fmt.Sprintf("批量删除主机资源 %d 条", len(req.IDs)))
 	c.JSON(http.StatusOK, gin.H{"code": 0, "msg": fmt.Sprintf("已删除 %d 条主机资源，已重新生成 node-info.txt", len(req.IDs))})

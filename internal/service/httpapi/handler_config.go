@@ -23,22 +23,17 @@ func (s *Server) handleGetConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"code": 0, "data": cfg})
 }
 
-// dhcpUpdateReq DHCP 配置更新请求。
+// dhcpUpdateReq DHCP 配置更新请求（地址池由子网接口管理，此处不含单网段字段）。
 type dhcpUpdateReq struct {
-	Enabled       *bool   `json:"enabled"`
-	ListenIP      *string `json:"listen_ip"`
-	Interface     *string `json:"interface"`
-	PXEIP         *string `json:"pxe_ip"`
-	IPPoolStart   *string `json:"ip_pool_start"`
-	IPPoolEnd     *string `json:"ip_pool_end"`
-	SubnetMask    *string `json:"subnet_mask"`
-	Gateway       *string `json:"gateway"`
-	DNSServers    *string `json:"dns_servers"`
-	LeaseTime     *int    `json:"lease_time"`
-	BootFileBIOS  *string `json:"boot_file_bios"`
-	BootFileX86   *string `json:"boot_file_x86"`
-	BootFileARM   *string `json:"boot_file_arm"`
-	IpxeScript    *string `json:"ipxe_script"`
+	Enabled      *bool   `json:"enabled"`
+	ListenIP     *string `json:"listen_ip"`
+	Interface    *string `json:"interface"`
+	PXEIP        *string `json:"pxe_ip"`
+	LeaseTime    *int    `json:"lease_time"`
+	BootFileBIOS *string `json:"boot_file_bios"`
+	BootFileX86  *string `json:"boot_file_x86"`
+	BootFileARM  *string `json:"boot_file_arm"`
+	IpxeScript   *string `json:"ipxe_script"`
 }
 
 // handleUpdateDHCP 更新 DHCP 配置并热重载。
@@ -51,11 +46,6 @@ func (s *Server) handleUpdateDHCP(c *gin.Context) {
 	setStr(&updates, "dhcp_listen_ip", req.ListenIP)
 	setStr(&updates, "dhcp_interface", req.Interface)
 	setStr(&updates, "dhcp_pxe_ip", req.PXEIP)
-	setStr(&updates, "dhcp_ip_pool_start", req.IPPoolStart)
-	setStr(&updates, "dhcp_ip_pool_end", req.IPPoolEnd)
-	setStr(&updates, "dhcp_subnet_mask", req.SubnetMask)
-	setStr(&updates, "dhcp_gateway", req.Gateway)
-	setStr(&updates, "dhcp_dns_servers", req.DNSServers)
 	setStr(&updates, "dhcp_boot_file_bios", req.BootFileBIOS)
 	setStr(&updates, "dhcp_boot_file_x86", req.BootFileX86)
 	setStr(&updates, "dhcp_boot_file_arm", req.BootFileARM)

@@ -50,17 +50,21 @@ func (m *Manager) ReloadAll() error {
 	m.dhcp.ListenIP = cfgStr(cfg, "dhcp_listen_ip", "0.0.0.0")
 	m.dhcp.Interface = cfgStr(cfg, "dhcp_interface", "")
 	m.dhcp.PXEIP = cfgStr(cfg, "dhcp_pxe_ip", "192.168.10.10")
-	m.dhcp.IPPoolStart = cfgStr(cfg, "dhcp_ip_pool_start", "192.168.10.100")
-	m.dhcp.IPPoolEnd = cfgStr(cfg, "dhcp_ip_pool_end", "192.168.10.200")
-	m.dhcp.SubnetMask = cfgStr(cfg, "dhcp_subnet_mask", "255.255.255.0")
-	m.dhcp.Gateway = cfgStr(cfg, "dhcp_gateway", "192.168.10.1")
-	m.dhcp.DNSServers = cfgStr(cfg, "dhcp_dns_servers", "192.168.10.1")
 	m.dhcp.LeaseTime = cfgInt(cfg, "dhcp_lease_time", 86400)
 	m.dhcp.BootFileBIOS = cfgStr(cfg, "dhcp_boot_file_bios", "undionly.kpxe")
 	m.dhcp.BootFileX86 = cfgStr(cfg, "dhcp_boot_file_x86", "ipxe-x86_64.efi")
 	m.dhcp.BootFileARM = cfgStr(cfg, "dhcp_boot_file_arm", "ipxe-aarch64.efi")
 	m.dhcp.IpxeScript = cfgStr(cfg, "dhcp_ipxe_script", "autoexec.ipxe")
 	m.dhcp.ConfigVersion = cfgInt64(cfg, "dhcp_config_version", 1)
+	// 加载多网段配置（dhcp_subnet 表）
+	if subs, err := db.ListDHCPSubnets(); err == nil {
+		m.dhcp.Subnets = make([]model.DHCPSubnet, 0, len(subs))
+		for _, p := range subs {
+			m.dhcp.Subnets = append(m.dhcp.Subnets, *p)
+		}
+	} else {
+		m.dhcp.Subnets = nil
+	}
 
 	// TFTP
 	m.tftp.Enabled = cfgBool(cfg, "tftp_enabled", true)

@@ -55,7 +55,12 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 		arch := ""
 		switch part.FormName() {
 		case "name":
-			data, _ := io.ReadAll(io.LimitReader(part, 1024))
+			data, err := io.ReadAll(io.LimitReader(part, 1024))
+			if err != nil {
+				cleanupTmp(tmpFiles)
+				c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "读取镜像名称失败: " + err.Error()})
+				return
+			}
 			name = strings.TrimSpace(string(data))
 		case "x86_iso":
 			arch = "x86_64"
@@ -102,9 +107,21 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 	var uploaded []string
 	var imgID int64
 	img, err := findImageByName(name)
-	if err != nil || img.ID == 0 {
+	if err != nil {
+		cleanupTmp(tmpFiles)
+		logger.FromGin(c).Error("查询镜像失败 %s: %v", name, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "查询镜像失败: " + err.Error()})
+		return
+	}
+	if img.ID == 0 {
 		img = &model.OSImage{Name: name}
-		imgID, _ = db.CreateOSImage(img)
+		imgID, err = db.CreateOSImage(img)
+		if err != nil {
+			cleanupTmp(tmpFiles)
+			logger.FromGin(c).Error("创建镜像记录失败 %s: %v", name, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "创建镜像记录失败: " + err.Error()})
+			return
+		}
 		img.ID = imgID
 	} else {
 		imgID = img.ID
@@ -140,10 +157,16 @@ func (s *Server) handleUploadImage(c *gin.Context) {
 		}
 		uploaded = append(uploaded, arch)
 	}
-	_ = db.UpdateOSImage(imgID, img)
+	if err := db.UpdateOSImage(imgID, img); err != nil {
+		logger.FromGin(c).Error("更新镜像记录失败 id=%d: %v", imgID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "更新镜像记录失败: " + err.Error()})
+		return
+	}
 	// 若当前无默认生效镜像，自动将该镜像设为默认安装镜像
 	if _, err := db.GetActiveOSImage(); err != nil && imgID > 0 {
-		_, _ = db.SetActiveOSImage(imgID)
+		if _, err := db.SetActiveOSImage(imgID); err != nil {
+			logger.FromGin(c).Warn("设置默认镜像失败 id=%d: %v", imgID, err)
+		}
 	}
 
 	s.writeLog(c, "image_upload", "上传并解压镜像: "+name+" 架构["+strings.Join(uploaded, ",")+"]")

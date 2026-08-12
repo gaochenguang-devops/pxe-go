@@ -12,6 +12,7 @@ import (
 	// 纯 Go SQLite 驱动，无 CGO 依赖，可静态编译，规避 glibc 版本问题。
 	_ "modernc.org/sqlite"
 
+	"pxe-server/internal/logger"
 	"pxe-server/internal/model"
 )
 
@@ -36,6 +37,9 @@ func Init(dbPath string) error {
 		return err
 	}
 	if err := seedDefaultConfig(); err != nil {
+		return err
+	}
+	if err := migrateDHCPSubnet(); err != nil {
 		return err
 	}
 	return nil
@@ -133,6 +137,18 @@ func createTables() error {
 			bond1_gateway TEXT NOT NULL DEFAULT ''
 		)`,
 		`CREATE UNIQUE INDEX IF NOT EXISTS idx_host_res_ipmi ON host_resource(ipmi_addr)`,
+	// DHCP 多网段配置表
+	`CREATE TABLE IF NOT EXISTS dhcp_subnet (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL DEFAULT '',
+		ip_pool_start TEXT NOT NULL DEFAULT '',
+		ip_pool_end TEXT NOT NULL DEFAULT '',
+		subnet_mask TEXT NOT NULL DEFAULT '',
+		gateway TEXT NOT NULL DEFAULT '',
+		dns_servers TEXT NOT NULL DEFAULT '',
+		enabled INTEGER NOT NULL DEFAULT 1,
+		sort_order INTEGER NOT NULL DEFAULT 0
+	)`,
 		// 部署脚本表
 		`CREATE TABLE IF NOT EXISTS deploy_script (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -261,11 +277,6 @@ func seedDefaultConfig() error {
 		"dhcp_listen_ip":          "0.0.0.0",
 		"dhcp_interface":          "",
 		"dhcp_pxe_ip":             "192.168.10.10",
-		"dhcp_ip_pool_start":      "192.168.10.100",
-		"dhcp_ip_pool_end":        "192.168.10.200",
-		"dhcp_subnet_mask":        "255.255.255.0",
-		"dhcp_gateway":            "192.168.10.1",
-		"dhcp_dns_servers":        "192.168.10.1",
 		"dhcp_lease_time":         "86400",
 		"dhcp_boot_file_bios":     "undionly.kpxe",
 		"dhcp_boot_file_x86":      "ipxe-x86_64.efi",
@@ -305,6 +316,60 @@ func insertDefaultConfig(key, value string) error {
 	_, err = DB.Exec(`INSERT INTO sys_config(config_key, config_value, config_desc, update_time) VALUES(?,?,?,?)`,
 		key, value, "", time.Now().Unix())
 	return err
+}
+
+// migrateDHCPSubnet 将旧的单网段配置（dhcp_ip_pool_start 等）迁移为子网记录。
+// 仅在 dhcp_subnet 表为空时执行；迁移完成后删除旧配置键。
+// 旧数据库：用旧键的用户配置值创建子网；全新安装：无旧键时使用默认网段创建一条子网。
+func migrateDHCPSubnet() error {
+	var cnt int
+	if err := DB.QueryRow(`SELECT COUNT(1) FROM dhcp_subnet`).Scan(&cnt); err != nil {
+		return err
+	}
+	if cnt > 0 {
+		// 已存在子网，仅清理残留旧键
+		cleanOldDHCPKeys()
+		return nil
+	}
+
+	// 读取旧单网段配置（可能不存在则用默认值）
+	poolStart := configValueOr("dhcp_ip_pool_start", "192.168.10.100")
+	poolEnd := configValueOr("dhcp_ip_pool_end", "192.168.10.200")
+	mask := configValueOr("dhcp_subnet_mask", "255.255.255.0")
+	gateway := configValueOr("dhcp_gateway", "192.168.10.1")
+	dns := configValueOr("dhcp_dns_servers", "192.168.10.1")
+
+	if poolStart == "" || poolEnd == "" || mask == "" {
+		// 无有效旧配置，跳过迁移（用户需手动配置子网）
+		return nil
+	}
+
+	_, err := DB.Exec(`INSERT INTO dhcp_subnet(name, ip_pool_start, ip_pool_end, subnet_mask, gateway, dns_servers, enabled, sort_order)
+		VALUES(?,?,?,?,?,?,1,0)`,
+		"默认子网", poolStart, poolEnd, mask, gateway, dns)
+	if err != nil {
+		return err
+	}
+	cleanOldDHCPKeys()
+	return nil
+}
+
+// configValueOr 读取配置值，不存在或为空时返回默认值。
+func configValueOr(key, def string) string {
+	v, err := GetConfig(key)
+	if err != nil || v == "" {
+		return def
+	}
+	return v
+}
+
+// cleanOldDHCPKeys 删除旧的单网段配置键。
+func cleanOldDHCPKeys() {
+	for _, k := range []string{"dhcp_ip_pool_start", "dhcp_ip_pool_end", "dhcp_subnet_mask", "dhcp_gateway", "dhcp_dns_servers"} {
+		if _, err := DB.Exec(`DELETE FROM sys_config WHERE config_key=?`, k); err != nil {
+			logger.Warn("清理旧 DHCP 配置键失败 %s: %v", k, err)
+		}
+	}
 }
 
 // GetAllConfigs 返回全部配置键值。

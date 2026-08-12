@@ -96,7 +96,11 @@ func (s *Server) handleListUploadedFiles(c *gin.Context) {
 		if e.IsDir() {
 			continue
 		}
-		info, _ := e.Info()
+		info, err := e.Info()
+		if err != nil {
+			logger.Warn("读取上传文件信息失败 %s: %v", e.Name(), err)
+			continue
+		}
 		items = append(items, fileItem{
 			Name:    e.Name(),
 			Size:    info.Size(),

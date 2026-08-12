@@ -51,10 +51,22 @@ func (s *Server) handleListInstallRecords(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": err.Error()})
 		return
 	}
-	total, _ := db.CountInstallRecords()
-	successCount, _ := db.CountInstallRecordsByStatus("success")
-	failedCount, _ := db.CountInstallRecordsByStatus("failed")
-	noLldpCount, _ := db.CountInstallRecordsNoLldp()
+	total, err := db.CountInstallRecords()
+	if err != nil {
+		logger.FromGin(c).Warn("统计装机记录总数失败: %v", err)
+	}
+	successCount, err := db.CountInstallRecordsByStatus("success")
+	if err != nil {
+		logger.FromGin(c).Warn("统计装机成功数失败: %v", err)
+	}
+	failedCount, err := db.CountInstallRecordsByStatus("failed")
+	if err != nil {
+		logger.FromGin(c).Warn("统计装机失败数失败: %v", err)
+	}
+	noLldpCount, err := db.CountInstallRecordsNoLldp()
+	if err != nil {
+		logger.FromGin(c).Warn("统计无 LLDP 记录数失败: %v", err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    0,
