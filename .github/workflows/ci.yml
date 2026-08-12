@@ -41,9 +41,11 @@ jobs:
           CGO_ENABLED: "0"
         run: go build ./...
 
+      # -race 竞态检测依赖 cgo（仅本 step 开启；项目产物仍保持 CGO_ENABLED=0 纯 Go 静态编译）。
+      # Linux runner 自带 gcc，无需额外安装。modernc sqlite 为纯 Go 实现，CGO 开启下同样正常工作。
       - name: Unit tests (with race detector)
         env:
-          CGO_ENABLED: "0"
+          CGO_ENABLED: "1"
         run: go test ./... -count=1 -race -coverprofile=coverage.out
 
       - name: Upload coverage report
