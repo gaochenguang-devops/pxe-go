@@ -47,12 +47,28 @@ jobs:
           CC: aarch64-linux-gnu-gcc
         run: go build -trimpath -ldflags "-s -w" -o dist/pxe-server-linux-arm64 ./cmd/server
 
-      - name: Package artifacts
+      - name: Package artifacts (binary + assets + deploy)
         run: |
+          set -e
+          # 打包单平台：二进制 pxe-server + assets 目录 + deploy（systemd）目录
+          package_platform() {
+            local bin="$1" out="$2"
+            local staging="dist/staging"
+            rm -rf "$staging"
+            mkdir -p "$staging"
+            cp "$bin" "$staging/pxe-server"
+            chmod +x "$staging/pxe-server"
+            cp -r assets "$staging/assets"
+            cp -r deploy "$staging/deploy"
+            tar czf "$out" -C "$staging" pxe-server assets deploy
+          }
+          package_platform dist/pxe-server-linux-amd64 dist/pxe-server-linux-amd64.tar.gz
+          package_platform dist/pxe-server-linux-arm64 dist/pxe-server-linux-arm64.tar.gz
+          rm -rf dist/staging
           cd dist
-          tar czf pxe-server-linux-amd64.tar.gz pxe-server-linux-amd64
-          tar czf pxe-server-linux-arm64.tar.gz pxe-server-linux-arm64
           sha256sum pxe-server-*.tar.gz > SHA256SUMS
+          # 查看压缩包内容结构
+          tar tzf pxe-server-linux-amd64.tar.gz
           ls -lh
 
       - name: Generate changelog
