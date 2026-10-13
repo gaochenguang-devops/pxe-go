@@ -46,10 +46,10 @@ function loadImages(){
         <div class="image-card-actions">
           ${isActive
             ? '<span class="image-card-default-hint">正在作为默认镜像生效</span>'
-            : '<button class="btn btn-sm btn-ok" onclick="setActiveImage('+x.id+')">设为默认</button>'}
+            : `<button class="btn btn-sm btn-ok" onclick="setActiveImage(${x.id})">设为默认</button>`}
           <button class="btn btn-sm btn-icon" onclick="openBootFileModal(${x.id},&quot;${esc(x.name)}&quot;)" title="更新 initrd.img / vmlinuz">⚙</button>
           <button class="btn btn-sm btn-icon" onclick="openImageModal(&quot;${esc(x.name)}&quot;)" title="补充/更新 ISO">↻</button>
-          <button class="btn btn-sm btn-icon btn-danger-icon" onclick="delImage('+x.id+')" title="删除">✕</button>
+          <button class="btn btn-sm btn-icon btn-danger-icon" onclick="delImage(${x.id})" title="删除">✕</button>
         </div>
       </div>`;
     }).join('');
